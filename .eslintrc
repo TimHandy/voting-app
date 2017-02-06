@@ -138,7 +138,7 @@
 
     "array-bracket-spacing": ["error", "always"],
     "block-spacing": ["error", "always"],
-    "brace-style": ["warn", "tbs", { "allowSingleLine": true }],
+    // "brace-style": ["warn", "tbs", { "allowSingleLine": true }],
     "camelcase": ["error", { "properties": "always" }],
     "comma-spacing": ["error", { "before": false, "after": true }],
     "comma-style": ["error", "last"],
