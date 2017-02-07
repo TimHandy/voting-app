@@ -3,9 +3,9 @@
 const mongoose = require('mongoose')
 
 const pollSchema = new mongoose.Schema({
-  username: String,
-  pollName: String,
-  pollOptions: Array
+  username: {type: String, required: true},  
+  pollName: {type: String, required: true, index: {unique: true} },
+  pollOptions: {type: Array, required: true},
 });
 
 const Polls = mongoose.model('polls', pollSchema);

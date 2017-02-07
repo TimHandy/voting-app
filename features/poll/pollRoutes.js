@@ -54,17 +54,26 @@ function addPollToDatabase(poll) {
     // save instance to the database
     newModelInstance.save(function(err, data) {
         if (err) {
-            throw err
+          console.log(err.errmsg);
         } else {
             console.log('Poll added to database successfully!')
         }
     })
 }
 
+function createTestData() {
+    addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'batman':0, 'he-man': 0}]}, function() {
+      
+    })
+    addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
+    addPollToDatabase({username: 'parm', pollName: 'favourite hero', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
+    addPollToDatabase({username: 'parm', pollName: 'favourite people', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
+}
+
 /* // GET /api/imagesearch/:searchTerm?offset=x */
 router.get('/:username/:pollname', function(req, res, next) {
-    // addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'batman':0, 'he-man': 0}]})
-    // addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
+
+  // createTestData()
 
     const username = req.params.username
     const pollName = req.params.pollname
