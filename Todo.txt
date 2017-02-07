@@ -1,8 +1,0 @@
-Todo
-
-1.
-Implement strict types for schema using 'mongoose-types' module.
-
-Check password schema type against module (TBC (i.e. auth)) requirements
-
-2.

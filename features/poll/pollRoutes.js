@@ -73,7 +73,7 @@ function createTestData() {
 /* // GET /api/imagesearch/:searchTerm?offset=x */
 router.get('/:username/:pollname', function(req, res, next) {
 
-  // createTestData()
+ // createTestData()
 
     const username = req.params.username
     const pollName = req.params.pollname
