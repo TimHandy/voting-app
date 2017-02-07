@@ -64,14 +64,28 @@ function addPollToDatabase(poll) {
 /* // GET /api/imagesearch/:searchTerm?offset=x */
 router.get('/:username/:pollname', function(req, res, next) {
     // addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'batman':0, 'he-man': 0}]})
+    // addPollToDatabase({username: 'tim', pollName: 'favourite hero', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
 
     const username = req.params.username
     const pollName = req.params.pollname
     
-    pollModel.findOne({'pollName': pollName}, function(err, doc){
-      if(err || doc == null) {
+    pollModel.findOne({'pollName': pollName}, function(err, docs){
+      if(err || docs == null) {
         var invalidPollName = new Error('That poll name does not exist in the database');
         return next(invalidPollName);
+      }
+      res.send(JSON.stringify(docs));
+    })
+});
+
+router.get('/:username/', function(req, res, next) {
+
+    const username = req.params.username
+    
+    pollModel.find({'username': username}, function(err, doc){
+      if(err || doc == null) {
+        var invalidUsername = new Error('That username does not exist in the database');
+        return next(invalidUsername);
       }
       res.send(JSON.stringify(doc));
     })
