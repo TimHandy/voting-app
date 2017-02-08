@@ -90,7 +90,7 @@ Note that for each project, you should create a new GitHub repository and a new 
                 id:
                 username:
                 pollName: string
-                pollOptions: [{'batman': 5}, {'He-Man': 0}]
+                pollOptions: [{option: string: score: number}, {'He-Man': 0}]
               }
             ]
     - Mongoose

@@ -37,7 +37,7 @@ mongoose.connection.once('open', function() {
   console.log('Connection error:', error);
 })
 
-const pollModel = require('./pollModel')
+const PollModel = require('./pollModel')
 
 
 // /*  End of Mongoose set up ----------------------------------------- */
@@ -45,7 +45,7 @@ const pollModel = require('./pollModel')
 
 function addPollToDatabase(poll) {
     
-    const newModelInstance = new pollModel({
+    const newModelInstance = new PollModel({
             username: poll.username,
             pollName: poll.pollName,
             pollOptions: poll.pollOptions
@@ -78,7 +78,7 @@ router.get('/:username/:pollname', function(req, res, next) {
     const username = req.params.username
     const pollName = req.params.pollname
     
-    pollModel.findOne({'pollName': pollName}, function(err, docs){
+    PollModel.findOne({'pollName': pollName}, function(err, docs){
       if(err || docs == null) {
         var invalidPollName = new Error('That poll name does not exist in the database');
         return next(invalidPollName);
@@ -91,7 +91,7 @@ router.get('/:username/', function(req, res, next) {
 
     const username = req.params.username
     
-    pollModel.find({'username': username}, function(err, doc){
+    PollModel.find({'username': username}, function(err, doc){
       if(err || doc == null) {
         var invalidUsername = new Error('That username does not exist in the database');
         return next(invalidUsername);
