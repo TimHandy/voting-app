@@ -18,7 +18,7 @@ const pollSchema = new mongoose.Schema({
 });
 
 // Ensure unique combo of username and pollName to prevent same user creating multiple polls of same name
-pollSchema.index({ username: 1, pollName: 1}, { unique: true });
+pollSchema.index({username: 1, pollName: 1}, { unique: true });
 
 const Poll = mongoose.model('poll', pollSchema);
 

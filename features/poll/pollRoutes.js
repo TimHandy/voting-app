@@ -2,7 +2,9 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const controller = './pollController';
+const pollController = require('./pollController')
+
+
 
 // Note to self: silence errors on production (Heroku) from dotenv complaining about lack of .env file: On Heroku the environment vars are added manually on the Settings page.
 
@@ -70,63 +72,16 @@ function createTestData() {
     addPollToDatabase({username: 'parm', pollName: 'favourite people', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
 }
 
-/* // GET /api/imagesearch/:searchTerm?offset=x */
-router.get('/:username/:pollname', function(req, res, next) {
+router.get('/', pollController.allPolls) // return all polls 
+router.post('/new', pollController.newPoll)  // create new poll
 
- // createTestData()
+router.get('/:id/edit', pollController.editPoll)  // show edit screen for poll
+//router.put('/:id', pollController.updatePoll)  // update poll
 
-    const username = req.params.username
-    const pollName = req.params.pollname
-    
-    PollModel.findOne({'pollName': pollName}, function(err, docs){
-      if(err || docs == null) {
-        var invalidPollName = new Error('That poll name does not exist in the database');
-        return next(invalidPollName);
-      }
-      res.send(JSON.stringify(docs));
-    })
-});
+router.get('/:id', pollController.getPoll) // show poll
 
-router.get('/:username/', function(req, res, next) {
+router.get('/:user/', pollController.findPollsByUser)  // show all polls for user
 
-    const username = req.params.username
-    
-    PollModel.find({'username': username}, function(err, doc){
-      if(err || doc == null) {
-        var invalidUsername = new Error('That username does not exist in the database');
-        return next(invalidUsername);
-      }
-      res.send(JSON.stringify(doc));
-    })
-});
-
-
-// /* GET latest searches. */
-// router.get('/latest/imagesearch/', function(req, res, next) {
-//     console.log('latest searches route');
-    
-//     searchModel.find({}).sort('-when').limit(10).exec(function(err, data) {
-//         const formattedResults = []
-//         console.log('data: ', data);
-//         data.forEach(function(searchItem) {
-//             let item = {
-//                 "term": searchItem.term,
-//                 "when": searchItem.when
-//             }
-//             formattedResults.push(item)
-//         })
-//         res.send( formattedResults )
-//     })
-// });
-
-// /*
-// response should be in following format, returning just latest 10 search entries:
-// [
-//     {
-//         "term": "lolcats funny",
-//         "when": "2016-12-06T11:44:33.235Z"
-//     }
-// ]
-// */
+//router.delete()
 
 module.exports = router;

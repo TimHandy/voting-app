@@ -52,7 +52,6 @@ describe('Finding records', function(){
       done();
     });
   });
-
 });
 
 // Describe our tests
