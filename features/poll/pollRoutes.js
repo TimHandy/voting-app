@@ -82,6 +82,6 @@ router.get('/:id', pollController.getPoll) // show poll
 
 router.get('/:user/', pollController.findPollsByUser)  // show all polls for user
 
-//router.delete()
+router.delete('/:id', pollController.deletePoll) // delete poll
 
 module.exports = router;

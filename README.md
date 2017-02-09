@@ -84,6 +84,9 @@ Note that for each project, you should create a new GitHub repository and a new 
       featureNameModel.js
       featureNameRoutes.js
 
+
+      Discuss API contracts
+
 1. Build Express REST API
 
     - CRUD

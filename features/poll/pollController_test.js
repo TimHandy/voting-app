@@ -67,7 +67,7 @@ describe('Deleting records', function(){
       done();
     });
   });
-
+  
   // Create tests
   it('Deletes a record from the database', function(done){
     PollModel.findOneAndRemove({username: 'tim'}).then(function(){
