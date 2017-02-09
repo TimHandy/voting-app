@@ -2,7 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import '../css/styles.scss'
+// import '../css/styles.scss'
 import {Button} from 'react-bootstrap'
 
 class Board extends React.Component {
