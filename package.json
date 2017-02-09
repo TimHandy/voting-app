@@ -6,6 +6,7 @@
     "start": "npm run build && node ./bin/www",
     "test": "mocha --watch ./features/**/*_test.js --required ./test/setup.js",
     "dev": "webpack-dev-server",
+    "nodemon": "nodemon --watch server --watch config --watch bin ./bin/www",
     "build": "webpack"
   },
   "dependencies": {
