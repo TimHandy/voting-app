@@ -73,7 +73,7 @@ function createTestData() {
 }
 
 router.get('/', pollController.allPolls) // return all polls 
-router.post('/new', pollController.newPoll)  // create new poll
+router.post('/', pollController.newPoll)  // create new poll
 
 router.get('/:id/edit', pollController.editPoll)  // show edit screen for poll
 router.put('/:id', pollController.updatePoll)  // update poll

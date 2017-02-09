@@ -131,3 +131,5 @@ Note that for each project, you should create a new GitHub repository and a new 
     - Make a list of the minimal bits of info to be stored as state. Decide whether each should be state or props.
     - Identify which components should own the state, find a common parent for the state to live on. Get the downwards flow of state working
     - Add inverse flow of data from child components to the parents working
+
+

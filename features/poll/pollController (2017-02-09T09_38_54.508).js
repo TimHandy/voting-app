@@ -8,7 +8,7 @@ const ObjectId = require('mongodb').ObjectId
 
 const handleError = function(res, errorMsg) {
     console.log(errorMsg)
-    res.status(500).json({success: false, message: errorMsg})
+    res.json({success: false, message: errorMsg})
 }
 
 module.exports.getPoll = function(req, res, next) {
@@ -18,7 +18,7 @@ module.exports.getPoll = function(req, res, next) {
     PollModel.findOne({ "_id": ObjectId(id) }, function(err, docs){
       (err || (docs == null))
         ? handleError(res, 'Error can not find poll in db') 
-        : res.status(200).json(docs)
+        : res.status()json(docs)
     })
 }
 
@@ -26,10 +26,10 @@ module.exports.findPollsByUser = function(req, res, next) {
 
     const username = req.params.username
     
-    PollModel.find({'username': username}, function(err, docs){
-      (err || (docs == null))
+    PollModel.find({'username': username}, function(err, doc){
+      (err || (doc == null))
         ? handleError(res, 'Error can not find polls by user in db') 
-        : res.status(200).json(docs)
+        : res.json(doc)
     })
 }
 
@@ -48,7 +48,7 @@ module.exports.newPoll = function(req, res, next) {
     ).save(function(err, data) {
       (err) 
         ? handleError(err, res, 'Error saving to db') 
-        : res.status(200).json({success: true, message: 'success: added'})
+        : res.json({success: true, message: 'success: added'})
     })
 }
 
@@ -59,7 +59,7 @@ module.exports.editPoll = function(req, res, next) {
     PollModel.findOne( { "_id": ObjectId(id) }, function(err, doc){
       (err || (doc == null))
         ? handleError(res, 'Error: that poll does not exist in database') 
-        : res.status(200).json(doc)
+        : res.json(doc)
     })
 }
 
@@ -78,7 +78,7 @@ module.exports.deletePoll = function(req, res, next) {
     PollModel.findOneAndRemove({ "_id": ObjectId(id) }, function(err, doc){
       (err || (doc == null))
         ? handleError(res, 'Error: unable to delete poll') 
-        : res.status(200).json({success: true, message: 'success: poll deleted'})
+        : res.json({success: true, message: 'success: poll deleted'})
     })
 }
 
@@ -97,6 +97,6 @@ module.exports.updatePoll = function(req, res, next) {
     PollModel.findOneAndUpdate( { "_id": ObjectId(id) },  updatedPoll, {new: true}, function(err, doc){
       (err || (doc == null))
         ? handleError(res, 'Error: unable to update') 
-        : res.status(200).json({success: true, message: 'success: poll updated'})
+        : res.json({success: true, message: 'success: poll updated'})
     })
 }
