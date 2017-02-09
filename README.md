@@ -39,27 +39,29 @@ Note that for each project, you should create a new GitHub repository and a new 
 
 1. Plan Express
 
+    Refer to 'API Contracts.md' for API usage guide.
+
     | **URL** | **HTTP Verb** |  **Action**|
     |------------|-------------|------------|
-    | /poll/         | GET       | index  
-    | /poll/user/    | GET       | index  
-    | /poll/new      | GET       | new   
-    | /poll          | POST      | create   
-    | /poll/:id      | GET       | show       
-    | /poll/:id/edit | GET       | edit       
-    | /poll/:id      | PATCH/PUT | update    
-    | /poll/:id      | DELETE    | destroy  
+    | /poll/         | GET       | index
+    | /poll/user/    | GET       | index
+    | /poll/new      | GET       | new
+    | /poll          | POST      | create
+    | /poll/:id      | GET       | show
+    | /poll/:id/edit | GET       | edit
+    | /poll/:id      | PATCH/PUT | update
+    | /poll/:id      | DELETE    | destroy
 
 
     | **URL** | **HTTP Verb** |  **Action**|
     |------------|-------------|------------|
-    | /user/         | GET       | index  
-    | /user/new      | GET       | new   
-    | /user          | POST      | create   
-    | /user/:id      | GET       | show       
-    | /user/:id/edit | GET       | edit       
-    | /user/:id      | PATCH/PUT | update    
-    | /user/:id      | DELETE    | destroy  
+    | /user/         | GET       | index
+    | /user/new      | GET       | new
+    | /user          | POST      | create
+    | /user/:id      | GET       | show
+    | /user/:id/edit | GET       | edit
+    | /user/:id      | PATCH/PUT | updat
+    | /user/:id      | DELETE    | destroy
 
     - Express generator
     - What CRUD methods do we need?
