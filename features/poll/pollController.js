@@ -52,9 +52,9 @@ module.exports.newPoll = function(req, res, next) {
     })
 }
 
-'editPoll: That poll does not exist in the database'
+
 module.exports.editPoll = function(req, res, next) {
-    console.log('in the editPoll route')
+
     const id = req.params.id
         
     PollModel.findOne( { "_id": ObjectId(id) }, function(err, doc){
@@ -80,5 +80,24 @@ module.exports.deletePoll = function(req, res, next) {
       (err || (doc == null))
         ? handleError(res, 'Error: unable to delete poll') 
         : res.json({success: true, message: 'success: poll deleted'})
+    })
+}
+
+module.exports.updatePoll = function(req, res, next) {
+
+    const id = req.params.id
+
+    const updatedPoll = 
+    {
+      username: req.body.username,
+      pollName: req.body.pollName, 
+      pollOptions: req.body.pollOptions
+    }
+
+        
+    PollModel.findOneAndUpdate( { "_id": ObjectId(id) },  updatedPoll, {new: true}, function(err, doc){
+      (err || (doc == null))
+        ? handleError(res, 'Error: unable to update') 
+        : res.json({success: true, message: 'success: poll updated'})
     })
 }
