@@ -43,8 +43,8 @@ Note that for each project, you should create a new GitHub repository and a new 
       * Header
         * Nav
         * UserSettings //just one component with 4 links
-      * Banner
-      * Login
+      * Jumbotron
+        * Login
       * Welcome
         * Dashboard
           * ChangeUserSettings

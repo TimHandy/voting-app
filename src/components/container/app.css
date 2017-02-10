@@ -59,10 +59,6 @@ body {
   margin-top: 28px;
 }
 
-a {
-    background-color: pink;
-}
-
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   /* Remove the padding we set earlier */
@@ -82,8 +78,12 @@ a {
   }
 }
 
+.navbar .navbar-brand {
+  padding-top: 22px;
+}
 
-
-/*.navbar-default .navbar-brand {
+/*.navbar-default .btn .navbar-brand {
     background: hotpink;
+    padding: 6px 12px;
 }*/
+
