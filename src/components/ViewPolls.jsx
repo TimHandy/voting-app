@@ -3,7 +3,7 @@
 import React from 'react';
 import { ListGroup, ListGroupItem} from 'react-bootstrap';
 
-const PollList = (props) => {
+const ViewPolls = (props) => {
   return (
   <ListGroup>
     <ListGroupItem header="Heading 1">Some body text</ListGroupItem>
@@ -13,4 +13,4 @@ const PollList = (props) => {
   );
 }
 
-export default PollList;
+export default ViewPolls;

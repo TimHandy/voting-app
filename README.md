@@ -40,22 +40,17 @@ Note that for each project, you should create a new GitHub repository and a new 
     # Step 1: Break The UI Into A Component Hierarchy
 
     * App
-      * Header
-        * Nav
-        * UserSettings //just one component with 4 links
-      * Jumbotron
-        * Login
-      * Welcome
-        * Dashboard
-          * ChangeUserSettings
+      * Nav - selectively render button depending on login status
+      * Jumbotron - only when not logged in
+      * Dashboard
+        * UserSettings - maybe the same as registerUser
         * Register
-        * NewPoll
+        * PollCreator (EditPoll is the same)
           * PollOptions
-        * Poll
+        * ViewPolls - selectively displays allpolls or mypolls 
+        * DisplayPoll - displaying a single poll
           * PollOptions
           * Chart
-        * MyPolls
-        * EditPoll
       * Footer
 
       # Step 2: Build A Static Version in React

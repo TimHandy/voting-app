@@ -6,7 +6,7 @@ import './app.css'
 import {Button, Grid, DropdownButton, MenuItem} from 'react-bootstrap'
 import MainNav from '../MainNav'
 import MainJumbotron from '../MainJumbotron'
-import Welcome from '../Welcome'
+import Dashboard from '../Dashboard'
 import Footer from '../Footer'
 
 class App extends React.Component {
@@ -20,7 +20,7 @@ class App extends React.Component {
       <Grid fluid style={{"paddingTop": 50}}>
         <MainNav />
         <MainJumbotron />
-        <Welcome />
+        <Dashboard />
         <Footer />
       </Grid>
     )
