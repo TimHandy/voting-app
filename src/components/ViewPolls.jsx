@@ -5,7 +5,6 @@ import { ListGroup, ListGroupItem} from 'react-bootstrap';
 
 const ViewPolls = (props) => {
 
-
   const polls = props.dataModel.map((poll, idx) => {
     return <ListGroupItem key={poll._id} header={poll.pollName} href="#">
       {poll.username}

@@ -1,15 +1,22 @@
 import React from 'react'
-import {FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap';
+import {FormGroup, ControlLabel, FormControl, HelpBlock, Button} from 'react-bootstrap';
 
-class EditPoll extends React.Component {
+class PollCreator extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      title: '',
-      options: []
+      newPollName: '',
+      newPollOptions: []
     }
   }
   
+  submitHandleChange = () => {
+    this.props.onUserInput(
+      this.state.newPollName,
+      this.state.newPollOptions
+    );
+  }
+
   handleChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value
@@ -17,6 +24,7 @@ class EditPoll extends React.Component {
   }
 
   render() {
+    console.log(this.props)
     return (
       <form>
         <ControlLabel>Create a new poll</ControlLabel>
@@ -26,13 +34,13 @@ class EditPoll extends React.Component {
           >
           <FormControl
             type="text"
-            name="title" 
+            name="newPollName" 
             required 
-            value={this.state.title}
-            placeholder="Title"
+            value={this.state.newPollName}
+            placeholder="New poll name"
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
-          <HelpBlock>Enter a Title</HelpBlock>
+          <HelpBlock>Enter a new poll name</HelpBlock>
         </FormGroup>
 
         <FormGroup
@@ -40,18 +48,19 @@ class EditPoll extends React.Component {
           >
           <FormControl
             type="text"
-            name="options" 
+            name="newPollOptions" 
             required 
-            value={this.state.options}
-            placeholder="Options"
+            value={this.state.newPollOptions}
+            placeholder="new Poll Options"
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
-          <HelpBlock>Options, separated by commas</HelpBlock>
+          <HelpBlock>new poll options, separated by commas</HelpBlock>
         </FormGroup>
-
+        
+        <Button onClick={this.submitHandleChange}>Submit Poll</Button>
       </form>
     );
   }
 }
 
-module.exports = EditPoll
+module.exports = PollCreator

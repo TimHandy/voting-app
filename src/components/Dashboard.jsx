@@ -13,16 +13,26 @@ class Dashboard extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      pollName: '',
+      options: []
     }
   }
+
+  handleUserInput = (pollName, options) => {
+    this.setState({
+      pollName: pollName,
+      options: options
+    });
+  }
+
   render() {
     return (
       <Grid >
         <ViewPolls dataModel={this.props.dataModel} />
         <Register />
         <UserSettings />
-        <PollCreator />
-        <EditPoll />
+        <PollCreator onUserInput = {this.handleUserInput} />
+        <EditPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handleUserInput} />
         <DisplayPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" />
       </Grid>
     )
