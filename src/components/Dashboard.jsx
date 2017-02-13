@@ -4,6 +4,7 @@ import React from 'react'
 import {Button, Grid, Col, Row} from 'react-bootstrap'
 import ViewPolls from './ViewPolls'
 import Register from './Register'
+import UserSettings from './UserSettings'
 
 class Dashboard extends React.Component {
   render() {
@@ -11,6 +12,7 @@ class Dashboard extends React.Component {
       <Grid>
         <ViewPolls />
         <Register />
+        <UserSettings />
       </Grid>
     )
   }

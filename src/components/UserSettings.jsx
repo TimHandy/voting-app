@@ -1,14 +1,14 @@
 import React from 'react'
 import {FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap';
 
-class Register extends React.Component {
+class UserSettings extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      username: '',
-      email: '',
-      password: '',
-      passwordConfirm: ''
+      username: 'davesmith',
+      email: 'dave@dave.com',
+      password: 'password101',
+      passwordConfirm: 'password101'
     }
   }
 
@@ -60,8 +60,8 @@ class Register extends React.Component {
 
   render() {
     return (
-      <form>
-        <ControlLabel>Register</ControlLabel>
+      <form >
+        <ControlLabel>Change User Settings</ControlLabel>
 
         <FormGroup
           controlId="formBasicText"
@@ -69,11 +69,10 @@ class Register extends React.Component {
           <FormControl
             type="text"
             name="username"
-            value={this.state.username}
-            placeholder="Username"
+            defaultValue={this.state.username}
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
-          <HelpBlock>Username should be at least 6 characters</HelpBlock>
+          <HelpBlock>Username should be at least 10 characters</HelpBlock>
         </FormGroup>
 
         <FormGroup
@@ -82,8 +81,7 @@ class Register extends React.Component {
           <FormControl
             type="email"
             name="email"
-            value={this.state.email}
-            placeholder="Email"
+            defaultValue={this.state.email}
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
           <HelpBlock>Email should be properly formatted</HelpBlock>
@@ -95,11 +93,10 @@ class Register extends React.Component {
           <FormControl
             type="password"
             name="password"
-            value={this.state.password}
-            placeholder="Password"
+            defaultValue = {this.state.password}
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
-          <HelpBlock>Password should be at least 11 characters.</HelpBlock>
+          <HelpBlock>Password should be at least 10 characters.</HelpBlock>
         </FormGroup>
 
         <FormGroup
@@ -108,8 +105,7 @@ class Register extends React.Component {
           <FormControl
             type="password"
             name="passwordConfirm"
-            value={this.state.passwordConfirm}
-            placeholder="Confirm Password"
+            defaultValue ={this.state.passwordConfirm}
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
           <HelpBlock>Password should be at least 11 characters, and match the one entered above.</HelpBlock>
@@ -120,4 +116,4 @@ class Register extends React.Component {
   }
 }
 
-module.exports = Register
+module.exports = UserSettings
