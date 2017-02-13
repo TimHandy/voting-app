@@ -6,18 +6,29 @@ import Chart from './Chart'
 
 const DisplayPoll = (props) => {
 
-  const pollOptions = ['superman', 'he-man', 'superted'].map((option, idx) => {
-    return <ListGroupItem className="list-group-item" key={idx}><Radio name='radioGroup'>{option}</Radio></ListGroupItem>
-  })
+  const poll = props
+    .dataModel
+    .find(p => p._id === props.pollId)
+
+  const pollOptions = poll.pollOptions.map(option => {
+
+      return (
+        <ListGroupItem className="list-group-item" key={option._id}>
+          <Radio name='radioGroup'>
+            {option.option}
+          </Radio>
+        </ListGroupItem>
+      )
+    })
 
   return (
     <div>
-      <h2>Favourite Superhero </h2>
-      <Chart />
-      <h3>Poll Options </h3>
-        <ListGroup>
-          {pollOptions}
-        </ListGroup>
+      <h2>Favourite Superhero</h2>
+      <Chart/>
+      <h3>Poll Options</h3>
+      <ListGroup>
+        {pollOptions}
+      </ListGroup>
       <Button>Submit Vote</Button>
     </div>
   );

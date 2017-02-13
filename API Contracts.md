@@ -62,28 +62,29 @@ no payload...
 Example Response
 ----------------
 200 OK
-
 {
-  "username": "dddd",
-  "pollName": "mypoll",
-  "pollOptions": [{
-      "option": "batman",
-      "score": 0
-    }, {
-      "option": "he-man",
-      "score": 0
-    }]
-}
-{
-  "username": "tre",
-  "pollName": "mypoll",
-  "pollOptions": [{
-      "option": "batman",
-      "score": 0
-    }, {
-      "option": "he-man",
-      "score": 0
-    }]
+  {
+    "username": "dddd",
+    "pollName": "mypoll",
+    "pollOptions": [{
+        "option": "batman",
+        "score": 0
+      }, {
+        "option": "he-man",
+        "score": 0
+      }]
+  },
+  {
+    "username": "tre",
+    "pollName": "mypoll",
+    "pollOptions": [{
+        "option": "batman",
+        "score": 0
+      }, {
+        "option": "he-man",
+        "score": 0
+      }]
+  }
 }
 
 Error Responses
@@ -192,28 +193,30 @@ Example Response
 ----------------
 200 OK
 //assume just 2 users in database
-{
-  "username": "dddd",
-  "pollName": "mypoll",
-  "pollOptions": [{
-      "option": "batman",
-      "score": 0
-    }, {
-      "option": "he-man",
-      "score": 0
-    }]
-}
-{
-  "username": "tre",
-  "pollName": "mypoll",
-  "pollOptions": [{
-      "option": "batman",
-      "score": 0
-    }, {
-      "option": "he-man",
-      "score": 0
-    }]
-}
+[
+  {
+    "username": "dddd",
+    "pollName": "mypoll",
+    "pollOptions": [{
+        "option": "batman",
+        "score": 0
+      }, {
+        "option": "he-man",
+        "score": 0
+      }]
+  },
+  {
+    "username": "tre",
+    "pollName": "mypoll",
+    "pollOptions": [{
+        "option": "batman",
+        "score": 0
+      }, {
+        "option": "he-man",
+        "score": 0
+      }]
+  }
+]
 
 Error Responses
 ---------------

@@ -10,15 +10,20 @@ import EditPoll from './EditPoll'
 import DisplayPoll from './DisplayPoll'
 
 class Dashboard extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+    }
+  }
   render() {
     return (
-      <Grid>
-        <ViewPolls />
+      <Grid >
+        <ViewPolls dataModel={this.props.dataModel} />
         <Register />
         <UserSettings />
         <PollCreator />
         <EditPoll />
-        <DisplayPoll />
+        <DisplayPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" />
       </Grid>
     )
   }

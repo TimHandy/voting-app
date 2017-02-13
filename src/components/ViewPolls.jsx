@@ -4,11 +4,17 @@ import React from 'react';
 import { ListGroup, ListGroupItem} from 'react-bootstrap';
 
 const ViewPolls = (props) => {
+
+
+  const polls = props.dataModel.map((poll, idx) => {
+    return <ListGroupItem key={poll._id} header={poll.pollName} href="#">
+      {poll.username}
+    </ListGroupItem>
+  })
+
   return (
   <ListGroup>
-    <ListGroupItem header="Heading 1">Some body text</ListGroupItem>
-    <ListGroupItem header="Heading 2" href="#">Linked item</ListGroupItem>
-    <ListGroupItem header="Heading 3" bsStyle="danger">Danger styling</ListGroupItem>
+   {polls}
   </ListGroup>
   );
 }

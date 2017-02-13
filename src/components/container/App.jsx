@@ -9,6 +9,8 @@ import MainJumbotron from '../MainJumbotron'
 import Dashboard from '../Dashboard'
 import Footer from '../Footer'
 
+
+
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -20,7 +22,7 @@ class App extends React.Component {
       <Grid fluid style={{"paddingTop": 50}}>
         <MainNav />
         <MainJumbotron />
-        <Dashboard />
+        <Dashboard dataModel={this.props.dataModel}/>
         <Footer />
       </Grid>
     )
