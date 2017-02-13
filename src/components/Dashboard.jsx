@@ -6,6 +6,7 @@ import ViewPolls from './ViewPolls'
 import Register from './Register'
 import UserSettings from './UserSettings'
 import PollCreator from './PollCreator'
+import EditPoll from './EditPoll'
 
 class Dashboard extends React.Component {
   render() {
@@ -15,6 +16,7 @@ class Dashboard extends React.Component {
         <Register />
         <UserSettings />
         <PollCreator />
+        <EditPoll />
       </Grid>
     )
   }

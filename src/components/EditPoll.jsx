@@ -1,12 +1,12 @@
 import React from 'react'
 import {FormGroup, ControlLabel, FormControl, HelpBlock} from 'react-bootstrap';
 
-class EditPoll extends React.Component {
+class PollCreator extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      title: '',
-      options: []
+      title: 'Favourite Superhero?',
+      options: ['batman', 'he-man', 'superman']
     }
   }
   
@@ -19,7 +19,7 @@ class EditPoll extends React.Component {
   render() {
     return (
       <form>
-        <ControlLabel>Create a new poll</ControlLabel>
+        <ControlLabel>Edit Poll</ControlLabel>
 
         <FormGroup
           controlId="formBasicText"
@@ -42,7 +42,7 @@ class EditPoll extends React.Component {
             type="text"
             name="options" 
             required 
-            value={this.state.options}
+            value={this.state.options.join(', ')}
             placeholder="Options"
             onChange={this.handleChange}/>
           <FormControl.Feedback/>
@@ -54,4 +54,4 @@ class EditPoll extends React.Component {
   }
 }
 
-module.exports = EditPoll
+module.exports = PollCreator
