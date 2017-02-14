@@ -18,11 +18,8 @@ class Dashboard extends React.Component {
     }
   }
 
-  handleUserInput = (pollName, options) => {
-    this.setState({
-      pollName: pollName,
-      options: options
-    });
+  handlePollEdit = (pollName, options) => {
+    this.setState({pollName,options});
   }
 
   render() {
@@ -31,8 +28,8 @@ class Dashboard extends React.Component {
         <ViewPolls dataModel={this.props.dataModel} />
         <Register />
         <UserSettings />
-        <PollCreator onUserInput = {this.handleUserInput} />
-        <EditPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handleUserInput} />
+        <PollCreator onUserInput = {this.handlePollEdit} />
+        <EditPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
         <DisplayPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" />
       </Grid>
     )
