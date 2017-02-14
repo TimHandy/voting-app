@@ -1,4 +1,537 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	var parentHotUpdateCallback = this["webpackHotUpdate"];
+/******/ 	this["webpackHotUpdate"] = 
+/******/ 	function webpackHotUpdateCallback(chunkId, moreModules) { // eslint-disable-line no-unused-vars
+/******/ 		hotAddUpdateChunk(chunkId, moreModules);
+/******/ 		if(parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
+/******/ 	}
+/******/ 	
+/******/ 	function hotDownloadUpdateChunk(chunkId) { // eslint-disable-line no-unused-vars
+/******/ 		var head = document.getElementsByTagName("head")[0];
+/******/ 		var script = document.createElement("script");
+/******/ 		script.type = "text/javascript";
+/******/ 		script.charset = "utf-8";
+/******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
+/******/ 		head.appendChild(script);
+/******/ 	}
+/******/ 	
+/******/ 	function hotDownloadManifest(callback) { // eslint-disable-line no-unused-vars
+/******/ 		if(typeof XMLHttpRequest === "undefined")
+/******/ 			return callback(new Error("No browser support"));
+/******/ 		try {
+/******/ 			var request = new XMLHttpRequest();
+/******/ 			var requestPath = __webpack_require__.p + "" + hotCurrentHash + ".hot-update.json";
+/******/ 			request.open("GET", requestPath, true);
+/******/ 			request.timeout = 10000;
+/******/ 			request.send(null);
+/******/ 		} catch(err) {
+/******/ 			return callback(err);
+/******/ 		}
+/******/ 		request.onreadystatechange = function() {
+/******/ 			if(request.readyState !== 4) return;
+/******/ 			if(request.status === 0) {
+/******/ 				// timeout
+/******/ 				callback(new Error("Manifest request to " + requestPath + " timed out."));
+/******/ 			} else if(request.status === 404) {
+/******/ 				// no update available
+/******/ 				callback();
+/******/ 			} else if(request.status !== 200 && request.status !== 304) {
+/******/ 				// other failure
+/******/ 				callback(new Error("Manifest request to " + requestPath + " failed."));
+/******/ 			} else {
+/******/ 				// success
+/******/ 				try {
+/******/ 					var update = JSON.parse(request.responseText);
+/******/ 				} catch(e) {
+/******/ 					callback(e);
+/******/ 					return;
+/******/ 				}
+/******/ 				callback(null, update);
+/******/ 			}
+/******/ 		};
+/******/ 	}
+
+/******/ 	
+/******/ 	
+/******/ 	// Copied from https://github.com/facebook/react/blob/bef45b0/src/shared/utils/canDefineProperty.js
+/******/ 	var canDefineProperty = false;
+/******/ 	try {
+/******/ 		Object.defineProperty({}, "x", {
+/******/ 			get: function() {}
+/******/ 		});
+/******/ 		canDefineProperty = true;
+/******/ 	} catch(x) {
+/******/ 		// IE will fail on defineProperty
+/******/ 	}
+/******/ 	
+/******/ 	var hotApplyOnUpdate = true;
+/******/ 	var hotCurrentHash = "7d030d62b11f914de0b3"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentModuleData = {};
+/******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
+/******/ 	
+/******/ 	function hotCreateRequire(moduleId) { // eslint-disable-line no-unused-vars
+/******/ 		var me = installedModules[moduleId];
+/******/ 		if(!me) return __webpack_require__;
+/******/ 		var fn = function(request) {
+/******/ 			if(me.hot.active) {
+/******/ 				if(installedModules[request]) {
+/******/ 					if(installedModules[request].parents.indexOf(moduleId) < 0)
+/******/ 						installedModules[request].parents.push(moduleId);
+/******/ 					if(me.children.indexOf(request) < 0)
+/******/ 						me.children.push(request);
+/******/ 				} else hotCurrentParents = [moduleId];
+/******/ 			} else {
+/******/ 				console.warn("[HMR] unexpected require(" + request + ") from disposed module " + moduleId);
+/******/ 				hotCurrentParents = [];
+/******/ 			}
+/******/ 			return __webpack_require__(request);
+/******/ 		};
+/******/ 		for(var name in __webpack_require__) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(__webpack_require__, name)) {
+/******/ 				if(canDefineProperty) {
+/******/ 					Object.defineProperty(fn, name, (function(name) {
+/******/ 						return {
+/******/ 							configurable: true,
+/******/ 							enumerable: true,
+/******/ 							get: function() {
+/******/ 								return __webpack_require__[name];
+/******/ 							},
+/******/ 							set: function(value) {
+/******/ 								__webpack_require__[name] = value;
+/******/ 							}
+/******/ 						};
+/******/ 					}(name)));
+/******/ 				} else {
+/******/ 					fn[name] = __webpack_require__[name];
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		function ensure(chunkId, callback) {
+/******/ 			if(hotStatus === "ready")
+/******/ 				hotSetStatus("prepare");
+/******/ 			hotChunksLoading++;
+/******/ 			__webpack_require__.e(chunkId, function() {
+/******/ 				try {
+/******/ 					callback.call(null, fn);
+/******/ 				} finally {
+/******/ 					finishChunkLoading();
+/******/ 				}
+/******/ 	
+/******/ 				function finishChunkLoading() {
+/******/ 					hotChunksLoading--;
+/******/ 					if(hotStatus === "prepare") {
+/******/ 						if(!hotWaitingFilesMap[chunkId]) {
+/******/ 							hotEnsureUpdateChunk(chunkId);
+/******/ 						}
+/******/ 						if(hotChunksLoading === 0 && hotWaitingFiles === 0) {
+/******/ 							hotUpdateDownloaded();
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 			});
+/******/ 		}
+/******/ 		if(canDefineProperty) {
+/******/ 			Object.defineProperty(fn, "e", {
+/******/ 				enumerable: true,
+/******/ 				value: ensure
+/******/ 			});
+/******/ 		} else {
+/******/ 			fn.e = ensure;
+/******/ 		}
+/******/ 		return fn;
+/******/ 	}
+/******/ 	
+/******/ 	function hotCreateModule(moduleId) { // eslint-disable-line no-unused-vars
+/******/ 		var hot = {
+/******/ 			// private stuff
+/******/ 			_acceptedDependencies: {},
+/******/ 			_declinedDependencies: {},
+/******/ 			_selfAccepted: false,
+/******/ 			_selfDeclined: false,
+/******/ 			_disposeHandlers: [],
+/******/ 	
+/******/ 			// Module API
+/******/ 			active: true,
+/******/ 			accept: function(dep, callback) {
+/******/ 				if(typeof dep === "undefined")
+/******/ 					hot._selfAccepted = true;
+/******/ 				else if(typeof dep === "function")
+/******/ 					hot._selfAccepted = dep;
+/******/ 				else if(typeof dep === "object")
+/******/ 					for(var i = 0; i < dep.length; i++)
+/******/ 						hot._acceptedDependencies[dep[i]] = callback;
+/******/ 				else
+/******/ 					hot._acceptedDependencies[dep] = callback;
+/******/ 			},
+/******/ 			decline: function(dep) {
+/******/ 				if(typeof dep === "undefined")
+/******/ 					hot._selfDeclined = true;
+/******/ 				else if(typeof dep === "number")
+/******/ 					hot._declinedDependencies[dep] = true;
+/******/ 				else
+/******/ 					for(var i = 0; i < dep.length; i++)
+/******/ 						hot._declinedDependencies[dep[i]] = true;
+/******/ 			},
+/******/ 			dispose: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			addDisposeHandler: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			removeDisposeHandler: function(callback) {
+/******/ 				var idx = hot._disposeHandlers.indexOf(callback);
+/******/ 				if(idx >= 0) hot._disposeHandlers.splice(idx, 1);
+/******/ 			},
+/******/ 	
+/******/ 			// Management API
+/******/ 			check: hotCheck,
+/******/ 			apply: hotApply,
+/******/ 			status: function(l) {
+/******/ 				if(!l) return hotStatus;
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			addStatusHandler: function(l) {
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			removeStatusHandler: function(l) {
+/******/ 				var idx = hotStatusHandlers.indexOf(l);
+/******/ 				if(idx >= 0) hotStatusHandlers.splice(idx, 1);
+/******/ 			},
+/******/ 	
+/******/ 			//inherit from previous dispose call
+/******/ 			data: hotCurrentModuleData[moduleId]
+/******/ 		};
+/******/ 		return hot;
+/******/ 	}
+/******/ 	
+/******/ 	var hotStatusHandlers = [];
+/******/ 	var hotStatus = "idle";
+/******/ 	
+/******/ 	function hotSetStatus(newStatus) {
+/******/ 		hotStatus = newStatus;
+/******/ 		for(var i = 0; i < hotStatusHandlers.length; i++)
+/******/ 			hotStatusHandlers[i].call(null, newStatus);
+/******/ 	}
+/******/ 	
+/******/ 	// while downloading
+/******/ 	var hotWaitingFiles = 0;
+/******/ 	var hotChunksLoading = 0;
+/******/ 	var hotWaitingFilesMap = {};
+/******/ 	var hotRequestedFilesMap = {};
+/******/ 	var hotAvailibleFilesMap = {};
+/******/ 	var hotCallback;
+/******/ 	
+/******/ 	// The update info
+/******/ 	var hotUpdate, hotUpdateNewHash;
+/******/ 	
+/******/ 	function toModuleId(id) {
+/******/ 		var isNumber = (+id) + "" === id;
+/******/ 		return isNumber ? +id : id;
+/******/ 	}
+/******/ 	
+/******/ 	function hotCheck(apply, callback) {
+/******/ 		if(hotStatus !== "idle") throw new Error("check() is only allowed in idle status");
+/******/ 		if(typeof apply === "function") {
+/******/ 			hotApplyOnUpdate = false;
+/******/ 			callback = apply;
+/******/ 		} else {
+/******/ 			hotApplyOnUpdate = apply;
+/******/ 			callback = callback || function(err) {
+/******/ 				if(err) throw err;
+/******/ 			};
+/******/ 		}
+/******/ 		hotSetStatus("check");
+/******/ 		hotDownloadManifest(function(err, update) {
+/******/ 			if(err) return callback(err);
+/******/ 			if(!update) {
+/******/ 				hotSetStatus("idle");
+/******/ 				callback(null, null);
+/******/ 				return;
+/******/ 			}
+/******/ 	
+/******/ 			hotRequestedFilesMap = {};
+/******/ 			hotAvailibleFilesMap = {};
+/******/ 			hotWaitingFilesMap = {};
+/******/ 			for(var i = 0; i < update.c.length; i++)
+/******/ 				hotAvailibleFilesMap[update.c[i]] = true;
+/******/ 			hotUpdateNewHash = update.h;
+/******/ 	
+/******/ 			hotSetStatus("prepare");
+/******/ 			hotCallback = callback;
+/******/ 			hotUpdate = {};
+/******/ 			var chunkId = 0;
+/******/ 			{ // eslint-disable-line no-lone-blocks
+/******/ 				/*globals chunkId */
+/******/ 				hotEnsureUpdateChunk(chunkId);
+/******/ 			}
+/******/ 			if(hotStatus === "prepare" && hotChunksLoading === 0 && hotWaitingFiles === 0) {
+/******/ 				hotUpdateDownloaded();
+/******/ 			}
+/******/ 		});
+/******/ 	}
+/******/ 	
+/******/ 	function hotAddUpdateChunk(chunkId, moreModules) { // eslint-disable-line no-unused-vars
+/******/ 		if(!hotAvailibleFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
+/******/ 			return;
+/******/ 		hotRequestedFilesMap[chunkId] = false;
+/******/ 		for(var moduleId in moreModules) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				hotUpdate[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(--hotWaitingFiles === 0 && hotChunksLoading === 0) {
+/******/ 			hotUpdateDownloaded();
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotEnsureUpdateChunk(chunkId) {
+/******/ 		if(!hotAvailibleFilesMap[chunkId]) {
+/******/ 			hotWaitingFilesMap[chunkId] = true;
+/******/ 		} else {
+/******/ 			hotRequestedFilesMap[chunkId] = true;
+/******/ 			hotWaitingFiles++;
+/******/ 			hotDownloadUpdateChunk(chunkId);
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotUpdateDownloaded() {
+/******/ 		hotSetStatus("ready");
+/******/ 		var callback = hotCallback;
+/******/ 		hotCallback = null;
+/******/ 		if(!callback) return;
+/******/ 		if(hotApplyOnUpdate) {
+/******/ 			hotApply(hotApplyOnUpdate, callback);
+/******/ 		} else {
+/******/ 			var outdatedModules = [];
+/******/ 			for(var id in hotUpdate) {
+/******/ 				if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 					outdatedModules.push(toModuleId(id));
+/******/ 				}
+/******/ 			}
+/******/ 			callback(null, outdatedModules);
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotApply(options, callback) {
+/******/ 		if(hotStatus !== "ready") throw new Error("apply() is only allowed in ready status");
+/******/ 		if(typeof options === "function") {
+/******/ 			callback = options;
+/******/ 			options = {};
+/******/ 		} else if(options && typeof options === "object") {
+/******/ 			callback = callback || function(err) {
+/******/ 				if(err) throw err;
+/******/ 			};
+/******/ 		} else {
+/******/ 			options = {};
+/******/ 			callback = callback || function(err) {
+/******/ 				if(err) throw err;
+/******/ 			};
+/******/ 		}
+/******/ 	
+/******/ 		function getAffectedStuff(module) {
+/******/ 			var outdatedModules = [module];
+/******/ 			var outdatedDependencies = {};
+/******/ 	
+/******/ 			var queue = outdatedModules.slice();
+/******/ 			while(queue.length > 0) {
+/******/ 				var moduleId = queue.pop();
+/******/ 				var module = installedModules[moduleId];
+/******/ 				if(!module || module.hot._selfAccepted)
+/******/ 					continue;
+/******/ 				if(module.hot._selfDeclined) {
+/******/ 					return new Error("Aborted because of self decline: " + moduleId);
+/******/ 				}
+/******/ 				if(moduleId === 0) {
+/******/ 					return;
+/******/ 				}
+/******/ 				for(var i = 0; i < module.parents.length; i++) {
+/******/ 					var parentId = module.parents[i];
+/******/ 					var parent = installedModules[parentId];
+/******/ 					if(parent.hot._declinedDependencies[moduleId]) {
+/******/ 						return new Error("Aborted because of declined dependency: " + moduleId + " in " + parentId);
+/******/ 					}
+/******/ 					if(outdatedModules.indexOf(parentId) >= 0) continue;
+/******/ 					if(parent.hot._acceptedDependencies[moduleId]) {
+/******/ 						if(!outdatedDependencies[parentId])
+/******/ 							outdatedDependencies[parentId] = [];
+/******/ 						addAllToSet(outdatedDependencies[parentId], [moduleId]);
+/******/ 						continue;
+/******/ 					}
+/******/ 					delete outdatedDependencies[parentId];
+/******/ 					outdatedModules.push(parentId);
+/******/ 					queue.push(parentId);
+/******/ 				}
+/******/ 			}
+/******/ 	
+/******/ 			return [outdatedModules, outdatedDependencies];
+/******/ 		}
+/******/ 	
+/******/ 		function addAllToSet(a, b) {
+/******/ 			for(var i = 0; i < b.length; i++) {
+/******/ 				var item = b[i];
+/******/ 				if(a.indexOf(item) < 0)
+/******/ 					a.push(item);
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// at begin all updates modules are outdated
+/******/ 		// the "outdated" status can propagate to parents if they don't accept the children
+/******/ 		var outdatedDependencies = {};
+/******/ 		var outdatedModules = [];
+/******/ 		var appliedUpdate = {};
+/******/ 		for(var id in hotUpdate) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 				var moduleId = toModuleId(id);
+/******/ 				var result = getAffectedStuff(moduleId);
+/******/ 				if(!result) {
+/******/ 					if(options.ignoreUnaccepted)
+/******/ 						continue;
+/******/ 					hotSetStatus("abort");
+/******/ 					return callback(new Error("Aborted because " + moduleId + " is not accepted"));
+/******/ 				}
+/******/ 				if(result instanceof Error) {
+/******/ 					hotSetStatus("abort");
+/******/ 					return callback(result);
+/******/ 				}
+/******/ 				appliedUpdate[moduleId] = hotUpdate[moduleId];
+/******/ 				addAllToSet(outdatedModules, result[0]);
+/******/ 				for(var moduleId in result[1]) {
+/******/ 					if(Object.prototype.hasOwnProperty.call(result[1], moduleId)) {
+/******/ 						if(!outdatedDependencies[moduleId])
+/******/ 							outdatedDependencies[moduleId] = [];
+/******/ 						addAllToSet(outdatedDependencies[moduleId], result[1][moduleId]);
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Store self accepted outdated modules to require them later by the module system
+/******/ 		var outdatedSelfAcceptedModules = [];
+/******/ 		for(var i = 0; i < outdatedModules.length; i++) {
+/******/ 			var moduleId = outdatedModules[i];
+/******/ 			if(installedModules[moduleId] && installedModules[moduleId].hot._selfAccepted)
+/******/ 				outdatedSelfAcceptedModules.push({
+/******/ 					module: moduleId,
+/******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
+/******/ 				});
+/******/ 		}
+/******/ 	
+/******/ 		// Now in "dispose" phase
+/******/ 		hotSetStatus("dispose");
+/******/ 		var queue = outdatedModules.slice();
+/******/ 		while(queue.length > 0) {
+/******/ 			var moduleId = queue.pop();
+/******/ 			var module = installedModules[moduleId];
+/******/ 			if(!module) continue;
+/******/ 	
+/******/ 			var data = {};
+/******/ 	
+/******/ 			// Call dispose handlers
+/******/ 			var disposeHandlers = module.hot._disposeHandlers;
+/******/ 			for(var j = 0; j < disposeHandlers.length; j++) {
+/******/ 				var cb = disposeHandlers[j];
+/******/ 				cb(data);
+/******/ 			}
+/******/ 			hotCurrentModuleData[moduleId] = data;
+/******/ 	
+/******/ 			// disable module (this disables requires from this module)
+/******/ 			module.hot.active = false;
+/******/ 	
+/******/ 			// remove module from cache
+/******/ 			delete installedModules[moduleId];
+/******/ 	
+/******/ 			// remove "parents" references from all children
+/******/ 			for(var j = 0; j < module.children.length; j++) {
+/******/ 				var child = installedModules[module.children[j]];
+/******/ 				if(!child) continue;
+/******/ 				var idx = child.parents.indexOf(moduleId);
+/******/ 				if(idx >= 0) {
+/******/ 					child.parents.splice(idx, 1);
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// remove outdated dependency from module children
+/******/ 		for(var moduleId in outdatedDependencies) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
+/******/ 				var module = installedModules[moduleId];
+/******/ 				var moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 				for(var j = 0; j < moduleOutdatedDependencies.length; j++) {
+/******/ 					var dependency = moduleOutdatedDependencies[j];
+/******/ 					var idx = module.children.indexOf(dependency);
+/******/ 					if(idx >= 0) module.children.splice(idx, 1);
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Not in "apply" phase
+/******/ 		hotSetStatus("apply");
+/******/ 	
+/******/ 		hotCurrentHash = hotUpdateNewHash;
+/******/ 	
+/******/ 		// insert new code
+/******/ 		for(var moduleId in appliedUpdate) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
+/******/ 				modules[moduleId] = appliedUpdate[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// call accept handlers
+/******/ 		var error = null;
+/******/ 		for(var moduleId in outdatedDependencies) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
+/******/ 				var module = installedModules[moduleId];
+/******/ 				var moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 				var callbacks = [];
+/******/ 				for(var i = 0; i < moduleOutdatedDependencies.length; i++) {
+/******/ 					var dependency = moduleOutdatedDependencies[i];
+/******/ 					var cb = module.hot._acceptedDependencies[dependency];
+/******/ 					if(callbacks.indexOf(cb) >= 0) continue;
+/******/ 					callbacks.push(cb);
+/******/ 				}
+/******/ 				for(var i = 0; i < callbacks.length; i++) {
+/******/ 					var cb = callbacks[i];
+/******/ 					try {
+/******/ 						cb(outdatedDependencies);
+/******/ 					} catch(err) {
+/******/ 						if(!error)
+/******/ 							error = err;
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Load self accepted modules
+/******/ 		for(var i = 0; i < outdatedSelfAcceptedModules.length; i++) {
+/******/ 			var item = outdatedSelfAcceptedModules[i];
+/******/ 			var moduleId = item.module;
+/******/ 			hotCurrentParents = [moduleId];
+/******/ 			try {
+/******/ 				__webpack_require__(moduleId);
+/******/ 			} catch(err) {
+/******/ 				if(typeof item.errorHandler === "function") {
+/******/ 					try {
+/******/ 						item.errorHandler(err);
+/******/ 					} catch(err) {
+/******/ 						if(!error)
+/******/ 							error = err;
+/******/ 					}
+/******/ 				} else if(!error)
+/******/ 					error = err;
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// handle errors in accept handlers and self accepted module load
+/******/ 		if(error) {
+/******/ 			hotSetStatus("fail");
+/******/ 			return callback(error);
+/******/ 		}
+/******/ 	
+/******/ 		hotSetStatus("idle");
+/******/ 		callback(null, outdatedModules);
+/******/ 	}
+
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -13,11 +546,14 @@
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			exports: {},
 /******/ 			id: moduleId,
-/******/ 			loaded: false
+/******/ 			loaded: false,
+/******/ 			hot: hotCreateModule(moduleId),
+/******/ 			parents: hotCurrentParents,
+/******/ 			children: []
 /******/ 		};
 
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, hotCreateRequire(moduleId));
 
 /******/ 		// Flag the module as loaded
 /******/ 		module.loaded = true;
@@ -36,15 +572,18 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 
+/******/ 	// __webpack_hash__
+/******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
+
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(0);
+/******/ 	return hotCreateRequire(0)(0);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactDom = __webpack_require__(32);\n\nvar _reactDom2 = _interopRequireDefault(_reactDom);\n\nvar _App = __webpack_require__(178);\n\nvar _App2 = _interopRequireDefault(_App);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\n_reactDom2.default.render(_react2.default.createElement(_App2.default, null), document.getElementById('app'));//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMC5qcyIsInNvdXJjZXMiOlsid2VicGFjazovLy9zcmMvaW5kZXguanM/MWZkZiJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnXG5pbXBvcnQgUmVhY3RET00gZnJvbSAncmVhY3QtZG9tJ1xuaW1wb3J0IEFwcCBmcm9tICcuL2NvbXBvbmVudHMvY29udGFpbmVyL0FwcCdcblxuUmVhY3RET00ucmVuZGVyKDxBcHAgLz4sIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdhcHAnKSlcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gc3JjL2luZGV4LmpzIl0sIm1hcHBpbmdzIjoiOztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7Ozs7O0FBQ0EiLCJzb3VyY2VSb290IjoiIn0=");
+	eval("'use strict';\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactDom = __webpack_require__(32);\n\nvar _reactDom2 = _interopRequireDefault(_reactDom);\n\nvar _App = __webpack_require__(178);\n\nvar _App2 = _interopRequireDefault(_App);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar dataModel = [{\n  \"_id\": \"58a1ba69af38fd34724f95db\",\n  \"username\": \"tim\",\n  \"pollName\": \"favourite hero\",\n  \"__v\": 1,\n  \"pollOptions\": [{\n    \"option\": \"batman\",\n    \"score\": 0,\n    \"_id\": \"58a1ba69af38fd34724f95dd\"\n  }, {\n    \"option\": \"he-man\",\n    \"score\": 0,\n    \"_id\": \"58a1ba69af38fd34724f95dc\"\n  }, {\n    \"option\": \"spongebob\",\n    \"score\": 0,\n    \"_id\": \"58a1ba69af38fd34724f95de\"\n  }]\n}, {\n  \"_id\": \"58a1bb108810c934540449f3\",\n  \"username\": \"davo\",\n  \"pollName\": \"favourite villain\",\n  \"__v\": 0,\n  \"pollOptions\": [{\n    \"option\": \"batman\",\n    \"score\": 0,\n    \"_id\": \"589b2eee8e38ec2f0880d2ba\"\n  }, {\n    \"option\": \"she-ra\",\n    \"score\": 0,\n    \"_id\": \"589b2eee8e38ec2f0880d2b9\"\n  }, {\n    \"option\": \"spongebob\",\n    \"score\": 0,\n    \"_id\": \"589b2eee8e38ec2f0880d2bb\"\n  }]\n}];\n\n_reactDom2.default.render(_react2.default.createElement(_App2.default, { dataModel: dataModel }), document.getElementById('app'));//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMC5qcyIsInNvdXJjZXMiOlsid2VicGFjazovLy9zcmMvaW5kZXguanM/MWZkZiJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnXG5pbXBvcnQgUmVhY3RET00gZnJvbSAncmVhY3QtZG9tJ1xuaW1wb3J0IEFwcCBmcm9tICcuL2NvbXBvbmVudHMvY29udGFpbmVyL0FwcCdcblxuY29uc3QgZGF0YU1vZGVsID0gW1xuICB7XG4gICAgXCJfaWRcIjogXCI1OGExYmE2OWFmMzhmZDM0NzI0Zjk1ZGJcIixcbiAgICBcInVzZXJuYW1lXCI6IFwidGltXCIsXG4gICAgXCJwb2xsTmFtZVwiOiBcImZhdm91cml0ZSBoZXJvXCIsXG4gICAgXCJfX3ZcIjogMSxcbiAgICBcInBvbGxPcHRpb25zXCI6IFtcbiAgICAgIHtcbiAgICAgICAgXCJvcHRpb25cIjogXCJiYXRtYW5cIixcbiAgICAgICAgXCJzY29yZVwiOiAwLFxuICAgICAgICBcIl9pZFwiOiBcIjU4YTFiYTY5YWYzOGZkMzQ3MjRmOTVkZFwiXG4gICAgICB9LFxuICAgICAge1xuICAgICAgICBcIm9wdGlvblwiOiBcImhlLW1hblwiLFxuICAgICAgICBcInNjb3JlXCI6IDAsXG4gICAgICAgIFwiX2lkXCI6IFwiNThhMWJhNjlhZjM4ZmQzNDcyNGY5NWRjXCJcbiAgICAgIH0sXG4gICAgICB7XG4gICAgICAgIFwib3B0aW9uXCI6IFwic3BvbmdlYm9iXCIsXG4gICAgICAgIFwic2NvcmVcIjogMCxcbiAgICAgICAgXCJfaWRcIjogXCI1OGExYmE2OWFmMzhmZDM0NzI0Zjk1ZGVcIlxuICAgICAgfVxuICAgIF1cbiAgfSxcbiAge1xuICAgIFwiX2lkXCI6IFwiNThhMWJiMTA4ODEwYzkzNDU0MDQ0OWYzXCIsXG4gICAgXCJ1c2VybmFtZVwiOiBcImRhdm9cIixcbiAgICBcInBvbGxOYW1lXCI6IFwiZmF2b3VyaXRlIHZpbGxhaW5cIixcbiAgICBcIl9fdlwiOiAwLFxuICAgIFwicG9sbE9wdGlvbnNcIjogW1xuICAgICAge1xuICAgICAgICBcIm9wdGlvblwiOiBcImJhdG1hblwiLFxuICAgICAgICBcInNjb3JlXCI6IDAsXG4gICAgICAgIFwiX2lkXCI6IFwiNTg5YjJlZWU4ZTM4ZWMyZjA4ODBkMmJhXCJcbiAgICAgIH0sXG4gICAgICB7XG4gICAgICAgIFwib3B0aW9uXCI6IFwic2hlLXJhXCIsXG4gICAgICAgIFwic2NvcmVcIjogMCxcbiAgICAgICAgXCJfaWRcIjogXCI1ODliMmVlZThlMzhlYzJmMDg4MGQyYjlcIlxuICAgICAgfSxcbiAgICAgIHtcbiAgICAgICAgXCJvcHRpb25cIjogXCJzcG9uZ2Vib2JcIixcbiAgICAgICAgXCJzY29yZVwiOiAwLFxuICAgICAgICBcIl9pZFwiOiBcIjU4OWIyZWVlOGUzOGVjMmYwODgwZDJiYlwiXG4gICAgICB9XG4gICAgXVxuICB9XG5dXG5cblJlYWN0RE9NLnJlbmRlcig8QXBwIGRhdGFNb2RlbD17ZGF0YU1vZGVsfSAvPiwgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2FwcCcpKVxuXG5cbi8vIFdFQlBBQ0sgRk9PVEVSIC8vXG4vLyBzcmMvaW5kZXguanMiXSwibWFwcGluZ3MiOiI7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7Ozs7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFFQTtBQUNBO0FBQ0E7QUFIQTtBQU1BO0FBQ0E7QUFDQTtBQUhBO0FBTUE7QUFDQTtBQUNBO0FBSEE7QUFoQkE7QUF3QkE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUhBO0FBTUE7QUFDQTtBQUNBO0FBSEE7QUFNQTtBQUNBO0FBQ0E7QUFIQTtBQWhCQTtBQUNBO0FBd0JBIiwic291cmNlUm9vdCI6IiJ9");
 
 /***/ },
 /* 1 */
@@ -1112,13 +1651,13 @@
 /* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _bootstrap = __webpack_require__(179);\n\nvar _bootstrap2 = _interopRequireDefault(_bootstrap);\n\n__webpack_require__(188);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _MainNav = __webpack_require__(442);\n\nvar _MainNav2 = _interopRequireDefault(_MainNav);\n\nvar _MainJumbotron = __webpack_require__(443);\n\nvar _MainJumbotron2 = _interopRequireDefault(_MainJumbotron);\n\nvar _Dashboard = __webpack_require__(444);\n\nvar _Dashboard2 = _interopRequireDefault(_Dashboard);\n\nvar _Footer = __webpack_require__(452);\n\nvar _Footer2 = _interopRequireDefault(_Footer);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\n// const dataModel = {\n//     {\n//     \"username\": \"dddd\",\n//     \"pollName\": \"mypoll\",\n//     \"pollOptions\": [{\n//         \"option\": \"batman\",\n//         \"score\": 0\n//       }, {\n//         \"option\": \"he-man\",\n//         \"score\": 0\n//       }]\n//   },\n//   {\n//     \"username\": \"tre\",\n//     \"pollName\": \"mypoll\",\n//     \"pollOptions\": [{\n//         \"option\": \"batman\",\n//         \"score\": 0\n//       }, {\n//         \"option\": \"he-man\",\n//         \"score\": 0\n//       }]\n//   }\n// }\n\nvar App = function (_React$Component) {\n  _inherits(App, _React$Component);\n\n  function App(props) {\n    _classCallCheck(this, App);\n\n    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));\n\n    _this.state = {};\n    return _this;\n  }\n\n  _createClass(App, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        _reactBootstrap.Grid,\n        { fluid: true, style: { \"paddingTop\": 50 } },\n        _react2.default.createElement(_MainNav2.default, null),\n        _react2.default.createElement(_MainJumbotron2.default, null),\n        _react2.default.createElement(_Dashboard2.default, null),\n        _react2.default.createElement(_Footer2.default, null)\n      );\n    }\n  }]);\n\n  return App;\n}(_react2.default.Component);\n\nmodule.exports = App;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTc4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL2NvbnRhaW5lci9BcHAuanN4P2ZhZWUiXSwic291cmNlc0NvbnRlbnQiOlsiJ3VzZSBzdHJpY3QnXG5cbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCBCb290c3RyYXAgZnJvbSAnYm9vdHN0cmFwL2Rpc3QvY3NzL2Jvb3RzdHJhcC5jc3MnXG5pbXBvcnQgJy4vYXBwLmNzcycgXG5pbXBvcnQge0J1dHRvbiwgR3JpZCwgRHJvcGRvd25CdXR0b24sIE1lbnVJdGVtfSBmcm9tICdyZWFjdC1ib290c3RyYXAnXG5pbXBvcnQgTWFpbk5hdiBmcm9tICcuLi9NYWluTmF2J1xuaW1wb3J0IE1haW5KdW1ib3Ryb24gZnJvbSAnLi4vTWFpbkp1bWJvdHJvbidcbmltcG9ydCBEYXNoYm9hcmQgZnJvbSAnLi4vRGFzaGJvYXJkJ1xuaW1wb3J0IEZvb3RlciBmcm9tICcuLi9Gb290ZXInXG5cbi8vIGNvbnN0IGRhdGFNb2RlbCA9IHtcbi8vICAgICB7XG4vLyAgICAgXCJ1c2VybmFtZVwiOiBcImRkZGRcIixcbi8vICAgICBcInBvbGxOYW1lXCI6IFwibXlwb2xsXCIsXG4vLyAgICAgXCJwb2xsT3B0aW9uc1wiOiBbe1xuLy8gICAgICAgICBcIm9wdGlvblwiOiBcImJhdG1hblwiLFxuLy8gICAgICAgICBcInNjb3JlXCI6IDBcbi8vICAgICAgIH0sIHtcbi8vICAgICAgICAgXCJvcHRpb25cIjogXCJoZS1tYW5cIixcbi8vICAgICAgICAgXCJzY29yZVwiOiAwXG4vLyAgICAgICB9XVxuLy8gICB9LFxuLy8gICB7XG4vLyAgICAgXCJ1c2VybmFtZVwiOiBcInRyZVwiLFxuLy8gICAgIFwicG9sbE5hbWVcIjogXCJteXBvbGxcIixcbi8vICAgICBcInBvbGxPcHRpb25zXCI6IFt7XG4vLyAgICAgICAgIFwib3B0aW9uXCI6IFwiYmF0bWFuXCIsXG4vLyAgICAgICAgIFwic2NvcmVcIjogMFxuLy8gICAgICAgfSwge1xuLy8gICAgICAgICBcIm9wdGlvblwiOiBcImhlLW1hblwiLFxuLy8gICAgICAgICBcInNjb3JlXCI6IDBcbi8vICAgICAgIH1dXG4vLyAgIH1cbi8vIH1cblxuY2xhc3MgQXBwIGV4dGVuZHMgUmVhY3QuQ29tcG9uZW50IHtcbiAgY29uc3RydWN0b3IocHJvcHMpIHtcbiAgICBzdXBlcihwcm9wcylcbiAgICB0aGlzLnN0YXRlID0ge1xuICAgIH1cbiAgfVxuICByZW5kZXIoKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxHcmlkIGZsdWlkIHN0eWxlPXt7XCJwYWRkaW5nVG9wXCI6IDUwfX0+XG4gICAgICAgIDxNYWluTmF2IC8+XG4gICAgICAgIDxNYWluSnVtYm90cm9uIC8+XG4gICAgICAgIDxEYXNoYm9hcmQgLz5cbiAgICAgICAgPEZvb3RlciAvPlxuICAgICAgPC9HcmlkPlxuICAgIClcbiAgfVxufVxuXG5tb2R1bGUuZXhwb3J0cyA9IEFwcFxuXG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL2NvbnRhaW5lci9BcHAuanN4Il0sIm1hcHBpbmdzIjoiQUFBQTtBQUNBOzs7QUFDQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBO0FBQUE7QUFDQTtBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7Ozs7Ozs7Ozs7O0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTs7O0FBQ0E7QUFBQTtBQUNBO0FBREE7QUFDQTtBQUNBO0FBRkE7QUFJQTtBQUNBOzs7QUFBQTtBQUNBO0FBQ0E7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBSkE7QUFPQTs7OztBQWZBO0FBQ0E7QUFpQkEiLCJzb3VyY2VSb290IjoiIn0=");
+	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _bootstrap = __webpack_require__(179);\n\nvar _bootstrap2 = _interopRequireDefault(_bootstrap);\n\n__webpack_require__(188);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _MainNav = __webpack_require__(442);\n\nvar _MainNav2 = _interopRequireDefault(_MainNav);\n\nvar _MainJumbotron = __webpack_require__(443);\n\nvar _MainJumbotron2 = _interopRequireDefault(_MainJumbotron);\n\nvar _Dashboard = __webpack_require__(444);\n\nvar _Dashboard2 = _interopRequireDefault(_Dashboard);\n\nvar _Footer = __webpack_require__(452);\n\nvar _Footer2 = _interopRequireDefault(_Footer);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar App = function (_React$Component) {\n  _inherits(App, _React$Component);\n\n  function App(props) {\n    _classCallCheck(this, App);\n\n    var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));\n\n    _this.state = {};\n    return _this;\n  }\n\n  _createClass(App, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        _reactBootstrap.Grid,\n        { fluid: true, style: { \"paddingTop\": 50 } },\n        _react2.default.createElement(_MainNav2.default, null),\n        _react2.default.createElement(_MainJumbotron2.default, null),\n        _react2.default.createElement(_Dashboard2.default, { dataModel: this.props.dataModel }),\n        _react2.default.createElement(_Footer2.default, null)\n      );\n    }\n  }]);\n\n  return App;\n}(_react2.default.Component);\n\nmodule.exports = App;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTc4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL2NvbnRhaW5lci9BcHAuanN4P2ZhZWUiXSwic291cmNlc0NvbnRlbnQiOlsiJ3VzZSBzdHJpY3QnXG5cbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCBCb290c3RyYXAgZnJvbSAnYm9vdHN0cmFwL2Rpc3QvY3NzL2Jvb3RzdHJhcC5jc3MnXG5pbXBvcnQgJy4vYXBwLmNzcycgXG5pbXBvcnQge0J1dHRvbiwgR3JpZCwgRHJvcGRvd25CdXR0b24sIE1lbnVJdGVtfSBmcm9tICdyZWFjdC1ib290c3RyYXAnXG5pbXBvcnQgTWFpbk5hdiBmcm9tICcuLi9NYWluTmF2J1xuaW1wb3J0IE1haW5KdW1ib3Ryb24gZnJvbSAnLi4vTWFpbkp1bWJvdHJvbidcbmltcG9ydCBEYXNoYm9hcmQgZnJvbSAnLi4vRGFzaGJvYXJkJ1xuaW1wb3J0IEZvb3RlciBmcm9tICcuLi9Gb290ZXInXG5cblxuXG5jbGFzcyBBcHAgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICBjb25zdHJ1Y3Rvcihwcm9wcykge1xuICAgIHN1cGVyKHByb3BzKVxuICAgIHRoaXMuc3RhdGUgPSB7XG4gICAgICBcbiAgICB9XG4gIH1cbiAgcmVuZGVyKCkge1xuICAgIHJldHVybiAoXG4gICAgICA8R3JpZCBmbHVpZCBzdHlsZT17e1wicGFkZGluZ1RvcFwiOiA1MH19PlxuICAgICAgICA8TWFpbk5hdiAvPlxuICAgICAgICA8TWFpbkp1bWJvdHJvbiAvPlxuICAgICAgICA8RGFzaGJvYXJkIGRhdGFNb2RlbD17dGhpcy5wcm9wcy5kYXRhTW9kZWx9Lz5cbiAgICAgICAgPEZvb3RlciAvPlxuICAgICAgPC9HcmlkPlxuICAgIClcbiAgfVxufVxuXG5tb2R1bGUuZXhwb3J0cyA9IEFwcFxuXG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL2NvbnRhaW5lci9BcHAuanN4Il0sIm1hcHBpbmdzIjoiQUFBQTtBQUNBOzs7QUFDQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBO0FBQUE7QUFDQTtBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7Ozs7Ozs7Ozs7O0FBR0E7OztBQUNBO0FBQUE7QUFDQTtBQURBO0FBQ0E7QUFDQTtBQUZBO0FBS0E7QUFDQTs7O0FBQUE7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUpBO0FBT0E7Ozs7QUFoQkE7QUFDQTtBQWtCQSIsInNvdXJjZVJvb3QiOiIifQ==");
 
 /***/ },
 /* 179 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("// style-loader: Adds some css to the DOM by adding a <style> tag\n\n// load the styles\nvar content = __webpack_require__(180);\nif(typeof content === 'string') content = [[module.id, content, '']];\n// add the styles to the DOM\nvar update = __webpack_require__(187)(content, {});\nif(content.locals) module.exports = content.locals;\n// Hot Module Replacement\nif(false) {\n\t// When the styles change, update the <style> tags\n\tif(!content.locals) {\n\t\tmodule.hot.accept(\"!!./../../../css-loader/index.js!./bootstrap.css\", function() {\n\t\t\tvar newContent = require(\"!!./../../../css-loader/index.js!./bootstrap.css\");\n\t\t\tif(typeof newContent === 'string') newContent = [[module.id, newContent, '']];\n\t\t\tupdate(newContent);\n\t\t});\n\t}\n\t// When the module is disposed, remove the <style> tags\n\tmodule.hot.dispose(function() { update(); });\n}//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTc5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vfi9ib290c3RyYXAvZGlzdC9jc3MvYm9vdHN0cmFwLmNzcz9iZmI3Il0sInNvdXJjZXNDb250ZW50IjpbIi8vIHN0eWxlLWxvYWRlcjogQWRkcyBzb21lIGNzcyB0byB0aGUgRE9NIGJ5IGFkZGluZyBhIDxzdHlsZT4gdGFnXG5cbi8vIGxvYWQgdGhlIHN0eWxlc1xudmFyIGNvbnRlbnQgPSByZXF1aXJlKFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIpO1xuaWYodHlwZW9mIGNvbnRlbnQgPT09ICdzdHJpbmcnKSBjb250ZW50ID0gW1ttb2R1bGUuaWQsIGNvbnRlbnQsICcnXV07XG4vLyBhZGQgdGhlIHN0eWxlcyB0byB0aGUgRE9NXG52YXIgdXBkYXRlID0gcmVxdWlyZShcIiEuLy4uLy4uLy4uL3N0eWxlLWxvYWRlci9hZGRTdHlsZXMuanNcIikoY29udGVudCwge30pO1xuaWYoY29udGVudC5sb2NhbHMpIG1vZHVsZS5leHBvcnRzID0gY29udGVudC5sb2NhbHM7XG4vLyBIb3QgTW9kdWxlIFJlcGxhY2VtZW50XG5pZihtb2R1bGUuaG90KSB7XG5cdC8vIFdoZW4gdGhlIHN0eWxlcyBjaGFuZ2UsIHVwZGF0ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdGlmKCFjb250ZW50LmxvY2Fscykge1xuXHRcdG1vZHVsZS5ob3QuYWNjZXB0KFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIsIGZ1bmN0aW9uKCkge1xuXHRcdFx0dmFyIG5ld0NvbnRlbnQgPSByZXF1aXJlKFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIpO1xuXHRcdFx0aWYodHlwZW9mIG5ld0NvbnRlbnQgPT09ICdzdHJpbmcnKSBuZXdDb250ZW50ID0gW1ttb2R1bGUuaWQsIG5ld0NvbnRlbnQsICcnXV07XG5cdFx0XHR1cGRhdGUobmV3Q29udGVudCk7XG5cdFx0fSk7XG5cdH1cblx0Ly8gV2hlbiB0aGUgbW9kdWxlIGlzIGRpc3Bvc2VkLCByZW1vdmUgdGhlIDxzdHlsZT4gdGFnc1xuXHRtb2R1bGUuaG90LmRpc3Bvc2UoZnVuY3Rpb24oKSB7IHVwZGF0ZSgpOyB9KTtcbn1cblxuXG4vLy8vLy8vLy8vLy8vLy8vLy9cbi8vIFdFQlBBQ0sgRk9PVEVSXG4vLyAuL34vYm9vdHN0cmFwL2Rpc3QvY3NzL2Jvb3RzdHJhcC5jc3Ncbi8vIG1vZHVsZSBpZCA9IDE3OVxuLy8gbW9kdWxlIGNodW5rcyA9IDAiXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsInNvdXJjZVJvb3QiOiIifQ==");
+	eval("// style-loader: Adds some css to the DOM by adding a <style> tag\n\n// load the styles\nvar content = __webpack_require__(180);\nif(typeof content === 'string') content = [[module.id, content, '']];\n// add the styles to the DOM\nvar update = __webpack_require__(187)(content, {});\nif(content.locals) module.exports = content.locals;\n// Hot Module Replacement\nif(true) {\n\t// When the styles change, update the <style> tags\n\tif(!content.locals) {\n\t\tmodule.hot.accept(180, function() {\n\t\t\tvar newContent = __webpack_require__(180);\n\t\t\tif(typeof newContent === 'string') newContent = [[module.id, newContent, '']];\n\t\t\tupdate(newContent);\n\t\t});\n\t}\n\t// When the module is disposed, remove the <style> tags\n\tmodule.hot.dispose(function() { update(); });\n}//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTc5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vfi9ib290c3RyYXAvZGlzdC9jc3MvYm9vdHN0cmFwLmNzcz9iZmI3Il0sInNvdXJjZXNDb250ZW50IjpbIi8vIHN0eWxlLWxvYWRlcjogQWRkcyBzb21lIGNzcyB0byB0aGUgRE9NIGJ5IGFkZGluZyBhIDxzdHlsZT4gdGFnXG5cbi8vIGxvYWQgdGhlIHN0eWxlc1xudmFyIGNvbnRlbnQgPSByZXF1aXJlKFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIpO1xuaWYodHlwZW9mIGNvbnRlbnQgPT09ICdzdHJpbmcnKSBjb250ZW50ID0gW1ttb2R1bGUuaWQsIGNvbnRlbnQsICcnXV07XG4vLyBhZGQgdGhlIHN0eWxlcyB0byB0aGUgRE9NXG52YXIgdXBkYXRlID0gcmVxdWlyZShcIiEuLy4uLy4uLy4uL3N0eWxlLWxvYWRlci9hZGRTdHlsZXMuanNcIikoY29udGVudCwge30pO1xuaWYoY29udGVudC5sb2NhbHMpIG1vZHVsZS5leHBvcnRzID0gY29udGVudC5sb2NhbHM7XG4vLyBIb3QgTW9kdWxlIFJlcGxhY2VtZW50XG5pZihtb2R1bGUuaG90KSB7XG5cdC8vIFdoZW4gdGhlIHN0eWxlcyBjaGFuZ2UsIHVwZGF0ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdGlmKCFjb250ZW50LmxvY2Fscykge1xuXHRcdG1vZHVsZS5ob3QuYWNjZXB0KFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIsIGZ1bmN0aW9uKCkge1xuXHRcdFx0dmFyIG5ld0NvbnRlbnQgPSByZXF1aXJlKFwiISEuLy4uLy4uLy4uL2Nzcy1sb2FkZXIvaW5kZXguanMhLi9ib290c3RyYXAuY3NzXCIpO1xuXHRcdFx0aWYodHlwZW9mIG5ld0NvbnRlbnQgPT09ICdzdHJpbmcnKSBuZXdDb250ZW50ID0gW1ttb2R1bGUuaWQsIG5ld0NvbnRlbnQsICcnXV07XG5cdFx0XHR1cGRhdGUobmV3Q29udGVudCk7XG5cdFx0fSk7XG5cdH1cblx0Ly8gV2hlbiB0aGUgbW9kdWxlIGlzIGRpc3Bvc2VkLCByZW1vdmUgdGhlIDxzdHlsZT4gdGFnc1xuXHRtb2R1bGUuaG90LmRpc3Bvc2UoZnVuY3Rpb24oKSB7IHVwZGF0ZSgpOyB9KTtcbn1cblxuXG4vLy8vLy8vLy8vLy8vLy8vLy9cbi8vIFdFQlBBQ0sgRk9PVEVSXG4vLyAuL34vYm9vdHN0cmFwL2Rpc3QvY3NzL2Jvb3RzdHJhcC5jc3Ncbi8vIG1vZHVsZSBpZCA9IDE3OVxuLy8gbW9kdWxlIGNodW5rcyA9IDAiXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsInNvdXJjZVJvb3QiOiIifQ==");
 
 /***/ },
 /* 180 */
@@ -1172,13 +1711,13 @@
 /* 188 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("// style-loader: Adds some css to the DOM by adding a <style> tag\n\n// load the styles\nvar content = __webpack_require__(189);\nif(typeof content === 'string') content = [[module.id, content, '']];\n// add the styles to the DOM\nvar update = __webpack_require__(187)(content, {});\nif(content.locals) module.exports = content.locals;\n// Hot Module Replacement\nif(false) {\n\t// When the styles change, update the <style> tags\n\tif(!content.locals) {\n\t\tmodule.hot.accept(\"!!./../../../node_modules/css-loader/index.js!./app.css\", function() {\n\t\t\tvar newContent = require(\"!!./../../../node_modules/css-loader/index.js!./app.css\");\n\t\t\tif(typeof newContent === 'string') newContent = [[module.id, newContent, '']];\n\t\t\tupdate(newContent);\n\t\t});\n\t}\n\t// When the module is disposed, remove the <style> tags\n\tmodule.hot.dispose(function() { update(); });\n}//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTg4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3M/NjI3MiJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBzdHlsZS1sb2FkZXI6IEFkZHMgc29tZSBjc3MgdG8gdGhlIERPTSBieSBhZGRpbmcgYSA8c3R5bGU+IHRhZ1xuXG4vLyBsb2FkIHRoZSBzdHlsZXNcbnZhciBjb250ZW50ID0gcmVxdWlyZShcIiEhLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9pbmRleC5qcyEuL2FwcC5jc3NcIik7XG5pZih0eXBlb2YgY29udGVudCA9PT0gJ3N0cmluZycpIGNvbnRlbnQgPSBbW21vZHVsZS5pZCwgY29udGVudCwgJyddXTtcbi8vIGFkZCB0aGUgc3R5bGVzIHRvIHRoZSBET01cbnZhciB1cGRhdGUgPSByZXF1aXJlKFwiIS4vLi4vLi4vLi4vbm9kZV9tb2R1bGVzL3N0eWxlLWxvYWRlci9hZGRTdHlsZXMuanNcIikoY29udGVudCwge30pO1xuaWYoY29udGVudC5sb2NhbHMpIG1vZHVsZS5leHBvcnRzID0gY29udGVudC5sb2NhbHM7XG4vLyBIb3QgTW9kdWxlIFJlcGxhY2VtZW50XG5pZihtb2R1bGUuaG90KSB7XG5cdC8vIFdoZW4gdGhlIHN0eWxlcyBjaGFuZ2UsIHVwZGF0ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdGlmKCFjb250ZW50LmxvY2Fscykge1xuXHRcdG1vZHVsZS5ob3QuYWNjZXB0KFwiISEuLy4uLy4uLy4uL25vZGVfbW9kdWxlcy9jc3MtbG9hZGVyL2luZGV4LmpzIS4vYXBwLmNzc1wiLCBmdW5jdGlvbigpIHtcblx0XHRcdHZhciBuZXdDb250ZW50ID0gcmVxdWlyZShcIiEhLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9pbmRleC5qcyEuL2FwcC5jc3NcIik7XG5cdFx0XHRpZih0eXBlb2YgbmV3Q29udGVudCA9PT0gJ3N0cmluZycpIG5ld0NvbnRlbnQgPSBbW21vZHVsZS5pZCwgbmV3Q29udGVudCwgJyddXTtcblx0XHRcdHVwZGF0ZShuZXdDb250ZW50KTtcblx0XHR9KTtcblx0fVxuXHQvLyBXaGVuIHRoZSBtb2R1bGUgaXMgZGlzcG9zZWQsIHJlbW92ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdG1vZHVsZS5ob3QuZGlzcG9zZShmdW5jdGlvbigpIHsgdXBkYXRlKCk7IH0pO1xufVxuXG5cbi8vLy8vLy8vLy8vLy8vLy8vL1xuLy8gV0VCUEFDSyBGT09URVJcbi8vIC4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3Ncbi8vIG1vZHVsZSBpZCA9IDE4OFxuLy8gbW9kdWxlIGNodW5rcyA9IDAiXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsInNvdXJjZVJvb3QiOiIifQ==");
+	eval("// style-loader: Adds some css to the DOM by adding a <style> tag\n\n// load the styles\nvar content = __webpack_require__(189);\nif(typeof content === 'string') content = [[module.id, content, '']];\n// add the styles to the DOM\nvar update = __webpack_require__(187)(content, {});\nif(content.locals) module.exports = content.locals;\n// Hot Module Replacement\nif(true) {\n\t// When the styles change, update the <style> tags\n\tif(!content.locals) {\n\t\tmodule.hot.accept(189, function() {\n\t\t\tvar newContent = __webpack_require__(189);\n\t\t\tif(typeof newContent === 'string') newContent = [[module.id, newContent, '']];\n\t\t\tupdate(newContent);\n\t\t});\n\t}\n\t// When the module is disposed, remove the <style> tags\n\tmodule.hot.dispose(function() { update(); });\n}//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTg4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3M/NjI3MiJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBzdHlsZS1sb2FkZXI6IEFkZHMgc29tZSBjc3MgdG8gdGhlIERPTSBieSBhZGRpbmcgYSA8c3R5bGU+IHRhZ1xuXG4vLyBsb2FkIHRoZSBzdHlsZXNcbnZhciBjb250ZW50ID0gcmVxdWlyZShcIiEhLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9pbmRleC5qcyEuL2FwcC5jc3NcIik7XG5pZih0eXBlb2YgY29udGVudCA9PT0gJ3N0cmluZycpIGNvbnRlbnQgPSBbW21vZHVsZS5pZCwgY29udGVudCwgJyddXTtcbi8vIGFkZCB0aGUgc3R5bGVzIHRvIHRoZSBET01cbnZhciB1cGRhdGUgPSByZXF1aXJlKFwiIS4vLi4vLi4vLi4vbm9kZV9tb2R1bGVzL3N0eWxlLWxvYWRlci9hZGRTdHlsZXMuanNcIikoY29udGVudCwge30pO1xuaWYoY29udGVudC5sb2NhbHMpIG1vZHVsZS5leHBvcnRzID0gY29udGVudC5sb2NhbHM7XG4vLyBIb3QgTW9kdWxlIFJlcGxhY2VtZW50XG5pZihtb2R1bGUuaG90KSB7XG5cdC8vIFdoZW4gdGhlIHN0eWxlcyBjaGFuZ2UsIHVwZGF0ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdGlmKCFjb250ZW50LmxvY2Fscykge1xuXHRcdG1vZHVsZS5ob3QuYWNjZXB0KFwiISEuLy4uLy4uLy4uL25vZGVfbW9kdWxlcy9jc3MtbG9hZGVyL2luZGV4LmpzIS4vYXBwLmNzc1wiLCBmdW5jdGlvbigpIHtcblx0XHRcdHZhciBuZXdDb250ZW50ID0gcmVxdWlyZShcIiEhLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9pbmRleC5qcyEuL2FwcC5jc3NcIik7XG5cdFx0XHRpZih0eXBlb2YgbmV3Q29udGVudCA9PT0gJ3N0cmluZycpIG5ld0NvbnRlbnQgPSBbW21vZHVsZS5pZCwgbmV3Q29udGVudCwgJyddXTtcblx0XHRcdHVwZGF0ZShuZXdDb250ZW50KTtcblx0XHR9KTtcblx0fVxuXHQvLyBXaGVuIHRoZSBtb2R1bGUgaXMgZGlzcG9zZWQsIHJlbW92ZSB0aGUgPHN0eWxlPiB0YWdzXG5cdG1vZHVsZS5ob3QuZGlzcG9zZShmdW5jdGlvbigpIHsgdXBkYXRlKCk7IH0pO1xufVxuXG5cbi8vLy8vLy8vLy8vLy8vLy8vL1xuLy8gV0VCUEFDSyBGT09URVJcbi8vIC4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3Ncbi8vIG1vZHVsZSBpZCA9IDE4OFxuLy8gbW9kdWxlIGNodW5rcyA9IDAiXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsInNvdXJjZVJvb3QiOiIifQ==");
 
 /***/ },
 /* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("exports = module.exports = __webpack_require__(181)();\n// imports\n\n\n// module\nexports.push([module.id, \"/* Space out content a bit */\\nbody {\\n  padding-top: 20px;\\n  padding-bottom: 20px;\\n}\\n\\n/* Everything but the jumbotron gets side spacing for mobile first views */\\n.header,\\n.marketing,\\n.footer {\\n  padding-right: 15px;\\n  padding-left: 15px;\\n}\\n\\n/* Custom page header */\\n.header {\\n  padding-bottom: 20px;\\n  border-bottom: 1px solid grey;\\n}\\n/* Make the masthead heading the same height as the navigation */\\n.header h3 {\\n  margin-top: 0;\\n  margin-bottom: 0;\\n  line-height: 40px;\\n}\\n\\n/* Custom page footer */\\n.footer {\\n  padding-top: 19px;\\n  color: #777;\\n  border-top: 1px solid #e5e5e5;\\n}\\n\\n/* Customize container */\\n@media (min-width: 768px) {\\n  .container {\\n    max-width: 730px;\\n  }\\n}\\n.container-narrow > hr {\\n  margin: 30px 0;\\n}\\n\\n/* Main marketing message and sign up button */\\n.jumbotron {\\n  text-align: center;\\n  border-bottom: 1px solid #e5e5e5;\\n}\\n.jumbotron .btn {\\n  padding: 14px 24px;\\n  font-size: 21px;\\n}\\n\\n/* Supporting marketing content */\\n.marketing {\\n  margin: 40px 0;\\n}\\n.marketing p + h4 {\\n  margin-top: 28px;\\n}\\n\\n/* Responsive: Portrait tablets and up */\\n@media screen and (min-width: 768px) {\\n  /* Remove the padding we set earlier */\\n  .header,\\n  .marketing,\\n  .footer {\\n    padding-right: 0;\\n    padding-left: 0;\\n  }\\n  /* Space out the masthead */\\n  .header {\\n    margin-bottom: 30px;\\n  }\\n  /* Remove the bottom border on the jumbotron for visual effect */\\n  .jumbotron {\\n    border-bottom: 0;\\n  }\\n}\\n\\n.navbar .navbar-brand {\\n  padding-top: 22px;\\n}\\n\\n/*.navbar-default .btn .navbar-brand {\\n    background: hotpink;\\n    padding: 6px 12px;\\n}*/\\n\\n\", \"\"]);\n\n// exports\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTg5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3M/ODNiZSJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnRzID0gbW9kdWxlLmV4cG9ydHMgPSByZXF1aXJlKFwiLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9saWIvY3NzLWJhc2UuanNcIikoKTtcbi8vIGltcG9ydHNcblxuXG4vLyBtb2R1bGVcbmV4cG9ydHMucHVzaChbbW9kdWxlLmlkLCBcIi8qIFNwYWNlIG91dCBjb250ZW50IGEgYml0ICovXFxuYm9keSB7XFxuICBwYWRkaW5nLXRvcDogMjBweDtcXG4gIHBhZGRpbmctYm90dG9tOiAyMHB4O1xcbn1cXG5cXG4vKiBFdmVyeXRoaW5nIGJ1dCB0aGUganVtYm90cm9uIGdldHMgc2lkZSBzcGFjaW5nIGZvciBtb2JpbGUgZmlyc3Qgdmlld3MgKi9cXG4uaGVhZGVyLFxcbi5tYXJrZXRpbmcsXFxuLmZvb3RlciB7XFxuICBwYWRkaW5nLXJpZ2h0OiAxNXB4O1xcbiAgcGFkZGluZy1sZWZ0OiAxNXB4O1xcbn1cXG5cXG4vKiBDdXN0b20gcGFnZSBoZWFkZXIgKi9cXG4uaGVhZGVyIHtcXG4gIHBhZGRpbmctYm90dG9tOiAyMHB4O1xcbiAgYm9yZGVyLWJvdHRvbTogMXB4IHNvbGlkIGdyZXk7XFxufVxcbi8qIE1ha2UgdGhlIG1hc3RoZWFkIGhlYWRpbmcgdGhlIHNhbWUgaGVpZ2h0IGFzIHRoZSBuYXZpZ2F0aW9uICovXFxuLmhlYWRlciBoMyB7XFxuICBtYXJnaW4tdG9wOiAwO1xcbiAgbWFyZ2luLWJvdHRvbTogMDtcXG4gIGxpbmUtaGVpZ2h0OiA0MHB4O1xcbn1cXG5cXG4vKiBDdXN0b20gcGFnZSBmb290ZXIgKi9cXG4uZm9vdGVyIHtcXG4gIHBhZGRpbmctdG9wOiAxOXB4O1xcbiAgY29sb3I6ICM3Nzc7XFxuICBib3JkZXItdG9wOiAxcHggc29saWQgI2U1ZTVlNTtcXG59XFxuXFxuLyogQ3VzdG9taXplIGNvbnRhaW5lciAqL1xcbkBtZWRpYSAobWluLXdpZHRoOiA3NjhweCkge1xcbiAgLmNvbnRhaW5lciB7XFxuICAgIG1heC13aWR0aDogNzMwcHg7XFxuICB9XFxufVxcbi5jb250YWluZXItbmFycm93ID4gaHIge1xcbiAgbWFyZ2luOiAzMHB4IDA7XFxufVxcblxcbi8qIE1haW4gbWFya2V0aW5nIG1lc3NhZ2UgYW5kIHNpZ24gdXAgYnV0dG9uICovXFxuLmp1bWJvdHJvbiB7XFxuICB0ZXh0LWFsaWduOiBjZW50ZXI7XFxuICBib3JkZXItYm90dG9tOiAxcHggc29saWQgI2U1ZTVlNTtcXG59XFxuLmp1bWJvdHJvbiAuYnRuIHtcXG4gIHBhZGRpbmc6IDE0cHggMjRweDtcXG4gIGZvbnQtc2l6ZTogMjFweDtcXG59XFxuXFxuLyogU3VwcG9ydGluZyBtYXJrZXRpbmcgY29udGVudCAqL1xcbi5tYXJrZXRpbmcge1xcbiAgbWFyZ2luOiA0MHB4IDA7XFxufVxcbi5tYXJrZXRpbmcgcCArIGg0IHtcXG4gIG1hcmdpbi10b3A6IDI4cHg7XFxufVxcblxcbi8qIFJlc3BvbnNpdmU6IFBvcnRyYWl0IHRhYmxldHMgYW5kIHVwICovXFxuQG1lZGlhIHNjcmVlbiBhbmQgKG1pbi13aWR0aDogNzY4cHgpIHtcXG4gIC8qIFJlbW92ZSB0aGUgcGFkZGluZyB3ZSBzZXQgZWFybGllciAqL1xcbiAgLmhlYWRlcixcXG4gIC5tYXJrZXRpbmcsXFxuICAuZm9vdGVyIHtcXG4gICAgcGFkZGluZy1yaWdodDogMDtcXG4gICAgcGFkZGluZy1sZWZ0OiAwO1xcbiAgfVxcbiAgLyogU3BhY2Ugb3V0IHRoZSBtYXN0aGVhZCAqL1xcbiAgLmhlYWRlciB7XFxuICAgIG1hcmdpbi1ib3R0b206IDMwcHg7XFxuICB9XFxuICAvKiBSZW1vdmUgdGhlIGJvdHRvbSBib3JkZXIgb24gdGhlIGp1bWJvdHJvbiBmb3IgdmlzdWFsIGVmZmVjdCAqL1xcbiAgLmp1bWJvdHJvbiB7XFxuICAgIGJvcmRlci1ib3R0b206IDA7XFxuICB9XFxufVxcblxcbi5uYXZiYXIgLm5hdmJhci1icmFuZCB7XFxuICBwYWRkaW5nLXRvcDogMjJweDtcXG59XFxuXFxuLyoubmF2YmFyLWRlZmF1bHQgLmJ0biAubmF2YmFyLWJyYW5kIHtcXG4gICAgYmFja2dyb3VuZDogaG90cGluaztcXG4gICAgcGFkZGluZzogNnB4IDEycHg7XFxufSovXFxuXFxuXCIsIFwiXCJdKTtcblxuLy8gZXhwb3J0c1xuXG5cblxuLy8vLy8vLy8vLy8vLy8vLy8vXG4vLyBXRUJQQUNLIEZPT1RFUlxuLy8gLi9+L2Nzcy1sb2FkZXIhLi9zcmMvY29tcG9uZW50cy9jb250YWluZXIvYXBwLmNzc1xuLy8gbW9kdWxlIGlkID0gMTg5XG4vLyBtb2R1bGUgY2h1bmtzID0gMCJdLCJtYXBwaW5ncyI6IkFBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
+	eval("exports = module.exports = __webpack_require__(181)();\n// imports\n\n\n// module\nexports.push([module.id, \"/* Space out content a bit */\\nbody {\\n  padding-top: 20px;\\n  padding-bottom: 20px;\\n}\\n\\n/* Everything but the jumbotron gets side spacing for mobile first views */\\n.header,\\n.marketing,\\n.footer {\\n  padding-right: 15px;\\n  padding-left: 15px;\\n}\\n\\n/* Custom page header */\\n.header {\\n  padding-bottom: 20px;\\n  border-bottom: 1px solid grey;\\n}\\n/* Make the masthead heading the same height as the navigation */\\n.header h3 {\\n  margin-top: 0;\\n  margin-bottom: 0;\\n  line-height: 40px;\\n}\\n\\n/* Custom page footer */\\n.footer {\\n  padding-top: 19px;\\n  color: #777;\\n  border-top: 1px solid #e5e5e5;\\n}\\n\\n/* Customize container */\\n@media (min-width: 768px) {\\n  .container {\\n    max-width: 730px;\\n  }\\n}\\n.container-narrow > hr {\\n  margin: 30px 0;\\n}\\n\\n/* Main marketing message and sign up button */\\n.jumbotron {\\n  text-align: center;\\n  border-bottom: 1px solid #e5e5e5;\\n}\\n.jumbotron .btn {\\n  padding: 14px 24px;\\n  font-size: 21px;\\n}\\n\\n/* Supporting marketing content */\\n.marketing {\\n  margin: 40px 0;\\n}\\n.marketing p + h4 {\\n  margin-top: 28px;\\n}\\n\\n/* Responsive: Portrait tablets and up */\\n@media screen and (min-width: 768px) {\\n  /* Remove the padding we set earlier */\\n  .header,\\n  .marketing,\\n  .footer {\\n    padding-right: 0;\\n    padding-left: 0;\\n  }\\n  /* Space out the masthead */\\n  .header {\\n    margin-bottom: 30px;\\n  }\\n  /* Remove the bottom border on the jumbotron for visual effect */\\n  .jumbotron {\\n    border-bottom: 0;\\n  }\\n}\\n\\n.navbar .navbar-brand {\\n  padding-top: 22px;\\n}\\n\\n/*.navbar-default .btn .navbar-brand {\\n    background: hotpink;\\n    padding: 6px 12px;\\n}*/\\n\\n\\n\", \"\"]);\n\n// exports\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiMTg5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vLy4vc3JjL2NvbXBvbmVudHMvY29udGFpbmVyL2FwcC5jc3M/ODNiZSJdLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnRzID0gbW9kdWxlLmV4cG9ydHMgPSByZXF1aXJlKFwiLi8uLi8uLi8uLi9ub2RlX21vZHVsZXMvY3NzLWxvYWRlci9saWIvY3NzLWJhc2UuanNcIikoKTtcbi8vIGltcG9ydHNcblxuXG4vLyBtb2R1bGVcbmV4cG9ydHMucHVzaChbbW9kdWxlLmlkLCBcIi8qIFNwYWNlIG91dCBjb250ZW50IGEgYml0ICovXFxuYm9keSB7XFxuICBwYWRkaW5nLXRvcDogMjBweDtcXG4gIHBhZGRpbmctYm90dG9tOiAyMHB4O1xcbn1cXG5cXG4vKiBFdmVyeXRoaW5nIGJ1dCB0aGUganVtYm90cm9uIGdldHMgc2lkZSBzcGFjaW5nIGZvciBtb2JpbGUgZmlyc3Qgdmlld3MgKi9cXG4uaGVhZGVyLFxcbi5tYXJrZXRpbmcsXFxuLmZvb3RlciB7XFxuICBwYWRkaW5nLXJpZ2h0OiAxNXB4O1xcbiAgcGFkZGluZy1sZWZ0OiAxNXB4O1xcbn1cXG5cXG4vKiBDdXN0b20gcGFnZSBoZWFkZXIgKi9cXG4uaGVhZGVyIHtcXG4gIHBhZGRpbmctYm90dG9tOiAyMHB4O1xcbiAgYm9yZGVyLWJvdHRvbTogMXB4IHNvbGlkIGdyZXk7XFxufVxcbi8qIE1ha2UgdGhlIG1hc3RoZWFkIGhlYWRpbmcgdGhlIHNhbWUgaGVpZ2h0IGFzIHRoZSBuYXZpZ2F0aW9uICovXFxuLmhlYWRlciBoMyB7XFxuICBtYXJnaW4tdG9wOiAwO1xcbiAgbWFyZ2luLWJvdHRvbTogMDtcXG4gIGxpbmUtaGVpZ2h0OiA0MHB4O1xcbn1cXG5cXG4vKiBDdXN0b20gcGFnZSBmb290ZXIgKi9cXG4uZm9vdGVyIHtcXG4gIHBhZGRpbmctdG9wOiAxOXB4O1xcbiAgY29sb3I6ICM3Nzc7XFxuICBib3JkZXItdG9wOiAxcHggc29saWQgI2U1ZTVlNTtcXG59XFxuXFxuLyogQ3VzdG9taXplIGNvbnRhaW5lciAqL1xcbkBtZWRpYSAobWluLXdpZHRoOiA3NjhweCkge1xcbiAgLmNvbnRhaW5lciB7XFxuICAgIG1heC13aWR0aDogNzMwcHg7XFxuICB9XFxufVxcbi5jb250YWluZXItbmFycm93ID4gaHIge1xcbiAgbWFyZ2luOiAzMHB4IDA7XFxufVxcblxcbi8qIE1haW4gbWFya2V0aW5nIG1lc3NhZ2UgYW5kIHNpZ24gdXAgYnV0dG9uICovXFxuLmp1bWJvdHJvbiB7XFxuICB0ZXh0LWFsaWduOiBjZW50ZXI7XFxuICBib3JkZXItYm90dG9tOiAxcHggc29saWQgI2U1ZTVlNTtcXG59XFxuLmp1bWJvdHJvbiAuYnRuIHtcXG4gIHBhZGRpbmc6IDE0cHggMjRweDtcXG4gIGZvbnQtc2l6ZTogMjFweDtcXG59XFxuXFxuLyogU3VwcG9ydGluZyBtYXJrZXRpbmcgY29udGVudCAqL1xcbi5tYXJrZXRpbmcge1xcbiAgbWFyZ2luOiA0MHB4IDA7XFxufVxcbi5tYXJrZXRpbmcgcCArIGg0IHtcXG4gIG1hcmdpbi10b3A6IDI4cHg7XFxufVxcblxcbi8qIFJlc3BvbnNpdmU6IFBvcnRyYWl0IHRhYmxldHMgYW5kIHVwICovXFxuQG1lZGlhIHNjcmVlbiBhbmQgKG1pbi13aWR0aDogNzY4cHgpIHtcXG4gIC8qIFJlbW92ZSB0aGUgcGFkZGluZyB3ZSBzZXQgZWFybGllciAqL1xcbiAgLmhlYWRlcixcXG4gIC5tYXJrZXRpbmcsXFxuICAuZm9vdGVyIHtcXG4gICAgcGFkZGluZy1yaWdodDogMDtcXG4gICAgcGFkZGluZy1sZWZ0OiAwO1xcbiAgfVxcbiAgLyogU3BhY2Ugb3V0IHRoZSBtYXN0aGVhZCAqL1xcbiAgLmhlYWRlciB7XFxuICAgIG1hcmdpbi1ib3R0b206IDMwcHg7XFxuICB9XFxuICAvKiBSZW1vdmUgdGhlIGJvdHRvbSBib3JkZXIgb24gdGhlIGp1bWJvdHJvbiBmb3IgdmlzdWFsIGVmZmVjdCAqL1xcbiAgLmp1bWJvdHJvbiB7XFxuICAgIGJvcmRlci1ib3R0b206IDA7XFxuICB9XFxufVxcblxcbi5uYXZiYXIgLm5hdmJhci1icmFuZCB7XFxuICBwYWRkaW5nLXRvcDogMjJweDtcXG59XFxuXFxuLyoubmF2YmFyLWRlZmF1bHQgLmJ0biAubmF2YmFyLWJyYW5kIHtcXG4gICAgYmFja2dyb3VuZDogaG90cGluaztcXG4gICAgcGFkZGluZzogNnB4IDEycHg7XFxufSovXFxuXFxuXFxuXCIsIFwiXCJdKTtcblxuLy8gZXhwb3J0c1xuXG5cblxuLy8vLy8vLy8vLy8vLy8vLy8vXG4vLyBXRUJQQUNLIEZPT1RFUlxuLy8gLi9+L2Nzcy1sb2FkZXIhLi9zcmMvY29tcG9uZW50cy9jb250YWluZXIvYXBwLmNzc1xuLy8gbW9kdWxlIGlkID0gMTg5XG4vLyBtb2R1bGUgY2h1bmtzID0gMCJdLCJtYXBwaW5ncyI6IkFBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
 
 /***/ },
 /* 190 */
@@ -2708,13 +3247,13 @@
 /* 444 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _ViewPolls = __webpack_require__(445);\n\nvar _ViewPolls2 = _interopRequireDefault(_ViewPolls);\n\nvar _Register = __webpack_require__(446);\n\nvar _Register2 = _interopRequireDefault(_Register);\n\nvar _UserSettings = __webpack_require__(447);\n\nvar _UserSettings2 = _interopRequireDefault(_UserSettings);\n\nvar _PollCreator = __webpack_require__(448);\n\nvar _PollCreator2 = _interopRequireDefault(_PollCreator);\n\nvar _EditPoll = __webpack_require__(449);\n\nvar _EditPoll2 = _interopRequireDefault(_EditPoll);\n\nvar _DisplayPoll = __webpack_require__(450);\n\nvar _DisplayPoll2 = _interopRequireDefault(_DisplayPoll);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar Dashboard = function (_React$Component) {\n  _inherits(Dashboard, _React$Component);\n\n  function Dashboard() {\n    _classCallCheck(this, Dashboard);\n\n    return _possibleConstructorReturn(this, (Dashboard.__proto__ || Object.getPrototypeOf(Dashboard)).apply(this, arguments));\n  }\n\n  _createClass(Dashboard, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        _reactBootstrap.Grid,\n        null,\n        _react2.default.createElement(_ViewPolls2.default, null),\n        _react2.default.createElement(_Register2.default, null),\n        _react2.default.createElement(_UserSettings2.default, null),\n        _react2.default.createElement(_PollCreator2.default, null),\n        _react2.default.createElement(_EditPoll2.default, null),\n        _react2.default.createElement(_DisplayPoll2.default, null)\n      );\n    }\n  }]);\n\n  return Dashboard;\n}(_react2.default.Component);\n\n;\n\nexports.default = Dashboard;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ0LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0Rhc2hib2FyZC5qc3g/ZTU1OCJdLCJzb3VyY2VzQ29udGVudCI6WyIndXNlIHN0cmljdCdcblxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0J1xuaW1wb3J0IHtCdXR0b24sIEdyaWQsIENvbCwgUm93fSBmcm9tICdyZWFjdC1ib290c3RyYXAnXG5pbXBvcnQgVmlld1BvbGxzIGZyb20gJy4vVmlld1BvbGxzJ1xuaW1wb3J0IFJlZ2lzdGVyIGZyb20gJy4vUmVnaXN0ZXInXG5pbXBvcnQgVXNlclNldHRpbmdzIGZyb20gJy4vVXNlclNldHRpbmdzJ1xuaW1wb3J0IFBvbGxDcmVhdG9yIGZyb20gJy4vUG9sbENyZWF0b3InXG5pbXBvcnQgRWRpdFBvbGwgZnJvbSAnLi9FZGl0UG9sbCdcbmltcG9ydCBEaXNwbGF5UG9sbCBmcm9tICcuL0Rpc3BsYXlQb2xsJ1xuXG5jbGFzcyBEYXNoYm9hcmQgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICByZW5kZXIoKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxHcmlkPlxuICAgICAgICA8Vmlld1BvbGxzIC8+XG4gICAgICAgIDxSZWdpc3RlciAvPlxuICAgICAgICA8VXNlclNldHRpbmdzIC8+XG4gICAgICAgIDxQb2xsQ3JlYXRvciAvPlxuICAgICAgICA8RWRpdFBvbGwgLz5cbiAgICAgICAgPERpc3BsYXlQb2xsIC8+XG4gICAgICA8L0dyaWQ+XG4gICAgKVxuICB9XG59O1xuXG5leHBvcnQgZGVmYXVsdCBEYXNoYm9hcmQ7XG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL0Rhc2hib2FyZC5qc3giXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7Ozs7Ozs7QUFDQTtBQUNBOzs7QUFBQTtBQUNBO0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7Ozs7Ozs7Ozs7QUFDQTs7Ozs7Ozs7Ozs7QUFDQTtBQUNBO0FBQ0E7QUFBQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQU5BO0FBU0E7Ozs7QUFaQTtBQUNBO0FBWUE7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
+	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _ViewPolls = __webpack_require__(445);\n\nvar _ViewPolls2 = _interopRequireDefault(_ViewPolls);\n\nvar _Register = __webpack_require__(446);\n\nvar _Register2 = _interopRequireDefault(_Register);\n\nvar _UserSettings = __webpack_require__(447);\n\nvar _UserSettings2 = _interopRequireDefault(_UserSettings);\n\nvar _PollCreator = __webpack_require__(448);\n\nvar _PollCreator2 = _interopRequireDefault(_PollCreator);\n\nvar _EditPoll = __webpack_require__(449);\n\nvar _EditPoll2 = _interopRequireDefault(_EditPoll);\n\nvar _DisplayPoll = __webpack_require__(450);\n\nvar _DisplayPoll2 = _interopRequireDefault(_DisplayPoll);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar Dashboard = function (_React$Component) {\n  _inherits(Dashboard, _React$Component);\n\n  function Dashboard(props) {\n    _classCallCheck(this, Dashboard);\n\n    var _this = _possibleConstructorReturn(this, (Dashboard.__proto__ || Object.getPrototypeOf(Dashboard)).call(this, props));\n\n    _this.handlePollEdit = function (pollName, options, pollId) {\n      // const poll = this.state.polls.find(p => p._id === pollId)\n      // poll.pollName = pollName\n      // poll.pollOptions.map(val) => {return val.option = }\n      // this.setState({polls: this.state.polls})\n      _this.setState({ pollName: pollName, options: options });\n    };\n\n    _this.handlePollNew = function (pollName, options, pollID) {\n      _this.setState({ pollName: pollName, options: options });\n    };\n\n    _this.state = {\n      // polls: this.props.dataModel,\n      pollName: '',\n      options: []\n    };\n    return _this;\n  }\n\n  _createClass(Dashboard, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        _reactBootstrap.Grid,\n        null,\n        _react2.default.createElement(_ViewPolls2.default, { dataModel: this.props.dataModel }),\n        _react2.default.createElement(_Register2.default, null),\n        _react2.default.createElement(_UserSettings2.default, null),\n        _react2.default.createElement(_PollCreator2.default, { onUserInput: this.handlePollNew }),\n        _react2.default.createElement(_EditPoll2.default, { dataModel: this.props.dataModel, pollId: '58a1ba69af38fd34724f95db', onUserInput: this.handlePollEdit }),\n        _react2.default.createElement(_DisplayPoll2.default, { dataModel: this.props.dataModel, pollId: '58a1ba69af38fd34724f95db' })\n      );\n    }\n  }]);\n\n  return Dashboard;\n}(_react2.default.Component);\n\n;\n\nexports.default = Dashboard;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ0LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0Rhc2hib2FyZC5qc3g/ZTU1OCJdLCJzb3VyY2VzQ29udGVudCI6WyIndXNlIHN0cmljdCdcblxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0J1xuaW1wb3J0IHtCdXR0b24sIEdyaWQsIENvbCwgUm93fSBmcm9tICdyZWFjdC1ib290c3RyYXAnXG5pbXBvcnQgVmlld1BvbGxzIGZyb20gJy4vVmlld1BvbGxzJ1xuaW1wb3J0IFJlZ2lzdGVyIGZyb20gJy4vUmVnaXN0ZXInXG5pbXBvcnQgVXNlclNldHRpbmdzIGZyb20gJy4vVXNlclNldHRpbmdzJ1xuaW1wb3J0IFBvbGxDcmVhdG9yIGZyb20gJy4vUG9sbENyZWF0b3InXG5pbXBvcnQgRWRpdFBvbGwgZnJvbSAnLi9FZGl0UG9sbCdcbmltcG9ydCBEaXNwbGF5UG9sbCBmcm9tICcuL0Rpc3BsYXlQb2xsJ1xuXG5jbGFzcyBEYXNoYm9hcmQgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICBjb25zdHJ1Y3Rvcihwcm9wcykge1xuICAgIHN1cGVyKHByb3BzKVxuICAgIHRoaXMuc3RhdGUgPSB7XG4gICAgICAvLyBwb2xsczogdGhpcy5wcm9wcy5kYXRhTW9kZWwsXG4gICAgICBwb2xsTmFtZTogJycsXG4gICAgICBvcHRpb25zOiBbXVxuICAgIH1cbiAgfVxuXG4gIGhhbmRsZVBvbGxFZGl0ID0gKHBvbGxOYW1lLCBvcHRpb25zLCBwb2xsSWQpID0+IHtcbiAgICAvLyBjb25zdCBwb2xsID0gdGhpcy5zdGF0ZS5wb2xscy5maW5kKHAgPT4gcC5faWQgPT09IHBvbGxJZClcbiAgICAvLyBwb2xsLnBvbGxOYW1lID0gcG9sbE5hbWVcbiAgICAvLyBwb2xsLnBvbGxPcHRpb25zLm1hcCh2YWwpID0+IHtyZXR1cm4gdmFsLm9wdGlvbiA9IH1cbiAgICAvLyB0aGlzLnNldFN0YXRlKHtwb2xsczogdGhpcy5zdGF0ZS5wb2xsc30pXG4gICAgdGhpcy5zZXRTdGF0ZSh7cG9sbE5hbWUsb3B0aW9uc30pXG4gIH1cblxuICBoYW5kbGVQb2xsTmV3ID0gKHBvbGxOYW1lLCBvcHRpb25zLCBwb2xsSUQpID0+IHtcbiAgICB0aGlzLnNldFN0YXRlKHtwb2xsTmFtZSxvcHRpb25zfSlcbiAgfVxuXG4gIHJlbmRlcigpIHtcbiAgICByZXR1cm4gKFxuICAgICAgPEdyaWQgPlxuICAgICAgICA8Vmlld1BvbGxzIGRhdGFNb2RlbD17dGhpcy5wcm9wcy5kYXRhTW9kZWx9IC8+XG4gICAgICAgIDxSZWdpc3RlciAvPlxuICAgICAgICA8VXNlclNldHRpbmdzIC8+XG4gICAgICAgIDxQb2xsQ3JlYXRvciBvblVzZXJJbnB1dCA9IHt0aGlzLmhhbmRsZVBvbGxOZXd9IC8+XG4gICAgICAgIDxFZGl0UG9sbCBkYXRhTW9kZWw9e3RoaXMucHJvcHMuZGF0YU1vZGVsfSBwb2xsSWQ9XCI1OGExYmE2OWFmMzhmZDM0NzI0Zjk1ZGJcIiBvblVzZXJJbnB1dCA9IHt0aGlzLmhhbmRsZVBvbGxFZGl0fSAvPlxuICAgICAgICA8RGlzcGxheVBvbGwgZGF0YU1vZGVsPXt0aGlzLnByb3BzLmRhdGFNb2RlbH0gcG9sbElkPVwiNThhMWJhNjlhZjM4ZmQzNDcyNGY5NWRiXCIgLz5cbiAgICAgIDwvR3JpZD5cbiAgICApXG4gIH1cbn07XG5cbmV4cG9ydCBkZWZhdWx0IERhc2hib2FyZDtcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gc3JjL2NvbXBvbmVudHMvRGFzaGJvYXJkLmpzeCJdLCJtYXBwaW5ncyI6IkFBQUE7QUFDQTs7Ozs7OztBQUNBO0FBQ0E7OztBQUFBO0FBQ0E7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7Ozs7Ozs7OztBQUNBOzs7QUFDQTtBQUFBO0FBQ0E7QUFEQTtBQUNBO0FBREE7QUFVQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQWhCQTtBQWtCQTtBQUNBO0FBQ0E7QUFsQkE7QUFDQTtBQUNBO0FBQ0E7QUFIQTtBQUZBO0FBT0E7QUFDQTs7O0FBYUE7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFOQTtBQVNBOzs7O0FBakNBO0FBQ0E7QUFpQ0E7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
 
 /***/ },
 /* 445 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar ViewPolls = function ViewPolls(props) {\n  return _react2.default.createElement(\n    _reactBootstrap.ListGroup,\n    null,\n    _react2.default.createElement(\n      _reactBootstrap.ListGroupItem,\n      { header: 'Heading 1' },\n      'Some body text'\n    ),\n    _react2.default.createElement(\n      _reactBootstrap.ListGroupItem,\n      { header: 'Heading 2', href: '#' },\n      'Linked item'\n    ),\n    _react2.default.createElement(\n      _reactBootstrap.ListGroupItem,\n      { header: 'Heading 3', bsStyle: 'danger' },\n      'Danger styling'\n    )\n  );\n};\n\nexports.default = ViewPolls;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ1LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL1ZpZXdQb2xscy5qc3g/MzRlZiJdLCJzb3VyY2VzQ29udGVudCI6WyIndXNlIHN0cmljdCdcblxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JztcbmltcG9ydCB7IExpc3RHcm91cCwgTGlzdEdyb3VwSXRlbX0gZnJvbSAncmVhY3QtYm9vdHN0cmFwJztcblxuY29uc3QgVmlld1BvbGxzID0gKHByb3BzKSA9PiB7XG4gIHJldHVybiAoXG4gIDxMaXN0R3JvdXA+XG4gICAgPExpc3RHcm91cEl0ZW0gaGVhZGVyPVwiSGVhZGluZyAxXCI+U29tZSBib2R5IHRleHQ8L0xpc3RHcm91cEl0ZW0+XG4gICAgPExpc3RHcm91cEl0ZW0gaGVhZGVyPVwiSGVhZGluZyAyXCIgaHJlZj1cIiNcIj5MaW5rZWQgaXRlbTwvTGlzdEdyb3VwSXRlbT5cbiAgICA8TGlzdEdyb3VwSXRlbSBoZWFkZXI9XCJIZWFkaW5nIDNcIiBic1N0eWxlPVwiZGFuZ2VyXCI+RGFuZ2VyIHN0eWxpbmc8L0xpc3RHcm91cEl0ZW0+XG4gIDwvTGlzdEdyb3VwPlxuICApO1xufVxuXG5leHBvcnQgZGVmYXVsdCBWaWV3UG9sbHM7XG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL1ZpZXdQb2xscy5qc3giXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7Ozs7O0FBQ0E7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFIQTtBQU1BO0FBQ0E7Iiwic291cmNlUm9vdCI6IiJ9");
+	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar ViewPolls = function ViewPolls(props) {\n\n  var allPolls = fetch(\"/api/poll/\").then(function (blob) {\n    return blob.json();\n  }).then(function (j) {\n    console.log(j);\n  });\n\n  var polls = props.dataModel.map(function (poll, idx) {\n    return _react2.default.createElement(\n      _reactBootstrap.ListGroupItem,\n      { key: poll._id, header: poll.pollName, href: '#' },\n      poll.username\n    );\n  });\n\n  return _react2.default.createElement(\n    _reactBootstrap.ListGroup,\n    null,\n    polls\n  );\n};\n\nexports.default = ViewPolls;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ1LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL1ZpZXdQb2xscy5qc3g/MzRlZiJdLCJzb3VyY2VzQ29udGVudCI6WyIndXNlIHN0cmljdCdcblxuaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JztcbmltcG9ydCB7IExpc3RHcm91cCwgTGlzdEdyb3VwSXRlbX0gZnJvbSAncmVhY3QtYm9vdHN0cmFwJztcblxuY29uc3QgVmlld1BvbGxzID0gKHByb3BzKSA9PiB7XG5cbiAgY29uc3QgYWxsUG9sbHMgPSBmZXRjaChcIi9hcGkvcG9sbC9cIilcbiAgICAgICAgICAgICAgICAgICAgICAudGhlbihmdW5jdGlvbihibG9iKSB7XG4gICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gYmxvYi5qc29uKClcbiAgICAgICAgICAgICAgICAgICAgICB9KVxuICAgICAgICAgICAgICAgICAgICAgIC50aGVuKGZ1bmN0aW9uKGopIHtcbiAgICAgICAgICAgICAgICAgICAgICAgIGNvbnNvbGUubG9nKGopXG4gICAgICAgICAgICAgICAgICAgICAgfSlcblxuXG5cbiAgY29uc3QgcG9sbHMgPSBwcm9wcy5kYXRhTW9kZWwubWFwKChwb2xsLCBpZHgpID0+IHtcbiAgICByZXR1cm4gPExpc3RHcm91cEl0ZW0ga2V5PXtwb2xsLl9pZH0gaGVhZGVyPXtwb2xsLnBvbGxOYW1lfSBocmVmPVwiI1wiPlxuICAgICAge3BvbGwudXNlcm5hbWV9XG4gICAgPC9MaXN0R3JvdXBJdGVtPlxuICB9KVxuXG4gIHJldHVybiAoXG4gIDxMaXN0R3JvdXA+XG4gICB7cG9sbHN9XG4gIDwvTGlzdEdyb3VwPlxuICApO1xufVxuXG5leHBvcnQgZGVmYXVsdCBWaWV3UG9sbHM7XG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL1ZpZXdQb2xscy5qc3giXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7Ozs7O0FBQ0E7QUFDQTs7O0FBQUE7QUFDQTs7O0FBQ0E7QUFDQTtBQUNBO0FBRUE7QUFDQTtBQUVBO0FBQ0E7QUFDQTtBQUdBO0FBQ0E7QUFBQTtBQUFBO0FBQ0E7QUFEQTtBQUdBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQURBO0FBSUE7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
 
 /***/ },
 /* 446 */
@@ -2732,19 +3271,19 @@
 /* 448 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar EditPoll = function (_React$Component) {\n  _inherits(EditPoll, _React$Component);\n\n  function EditPoll(props) {\n    _classCallCheck(this, EditPoll);\n\n    var _this = _possibleConstructorReturn(this, (EditPoll.__proto__ || Object.getPrototypeOf(EditPoll)).call(this, props));\n\n    _this.handleChange = function (e) {\n      _this.setState(_defineProperty({}, e.target.name, e.target.value));\n    };\n\n    _this.state = {\n      title: '',\n      options: []\n    };\n    return _this;\n  }\n\n  _createClass(EditPoll, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        'form',\n        null,\n        _react2.default.createElement(\n          _reactBootstrap.ControlLabel,\n          null,\n          'Create a new poll'\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'title',\n            required: true,\n            value: this.state.title,\n            placeholder: 'Title',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Enter a Title'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'options',\n            required: true,\n            value: this.state.options,\n            placeholder: 'Options',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Options, separated by commas'\n          )\n        )\n      );\n    }\n  }]);\n\n  return EditPoll;\n}(_react2.default.Component);\n\nmodule.exports = EditPoll;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL1BvbGxDcmVhdG9yLmpzeD9iNjQyIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCB7Rm9ybUdyb3VwLCBDb250cm9sTGFiZWwsIEZvcm1Db250cm9sLCBIZWxwQmxvY2t9IGZyb20gJ3JlYWN0LWJvb3RzdHJhcCc7XG5cbmNsYXNzIEVkaXRQb2xsIGV4dGVuZHMgUmVhY3QuQ29tcG9uZW50IHtcbiAgY29uc3RydWN0b3IocHJvcHMpIHtcbiAgICBzdXBlcihwcm9wcylcbiAgICB0aGlzLnN0YXRlID0ge1xuICAgICAgdGl0bGU6ICcnLFxuICAgICAgb3B0aW9uczogW11cbiAgICB9XG4gIH1cbiAgXG4gIGhhbmRsZUNoYW5nZSA9IChlKSA9PiB7XG4gICAgdGhpcy5zZXRTdGF0ZSh7XG4gICAgICBbZS50YXJnZXQubmFtZV06IGUudGFyZ2V0LnZhbHVlXG4gICAgfSk7XG4gIH1cblxuICByZW5kZXIoKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxmb3JtPlxuICAgICAgICA8Q29udHJvbExhYmVsPkNyZWF0ZSBhIG5ldyBwb2xsPC9Db250cm9sTGFiZWw+XG5cbiAgICAgICAgPEZvcm1Hcm91cFxuICAgICAgICAgIGNvbnRyb2xJZD1cImZvcm1CYXNpY1RleHRcIlxuICAgICAgICAgID5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2xcbiAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgIG5hbWU9XCJ0aXRsZVwiIFxuICAgICAgICAgICAgcmVxdWlyZWQgXG4gICAgICAgICAgICB2YWx1ZT17dGhpcy5zdGF0ZS50aXRsZX1cbiAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiVGl0bGVcIlxuICAgICAgICAgICAgb25DaGFuZ2U9e3RoaXMuaGFuZGxlQ2hhbmdlfS8+XG4gICAgICAgICAgPEZvcm1Db250cm9sLkZlZWRiYWNrLz5cbiAgICAgICAgICA8SGVscEJsb2NrPkVudGVyIGEgVGl0bGU8L0hlbHBCbG9jaz5cbiAgICAgICAgPC9Gb3JtR3JvdXA+XG5cbiAgICAgICAgPEZvcm1Hcm91cFxuICAgICAgICAgIGNvbnRyb2xJZD1cImZvcm1CYXNpY1RleHRcIlxuICAgICAgICAgID5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2xcbiAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgIG5hbWU9XCJvcHRpb25zXCIgXG4gICAgICAgICAgICByZXF1aXJlZCBcbiAgICAgICAgICAgIHZhbHVlPXt0aGlzLnN0YXRlLm9wdGlvbnN9XG4gICAgICAgICAgICBwbGFjZWhvbGRlcj1cIk9wdGlvbnNcIlxuICAgICAgICAgICAgb25DaGFuZ2U9e3RoaXMuaGFuZGxlQ2hhbmdlfS8+XG4gICAgICAgICAgPEZvcm1Db250cm9sLkZlZWRiYWNrLz5cbiAgICAgICAgICA8SGVscEJsb2NrPk9wdGlvbnMsIHNlcGFyYXRlZCBieSBjb21tYXM8L0hlbHBCbG9jaz5cbiAgICAgICAgPC9Gb3JtR3JvdXA+XG5cbiAgICAgIDwvZm9ybT5cbiAgICApO1xuICB9XG59XG5cbm1vZHVsZS5leHBvcnRzID0gRWRpdFBvbGxcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gc3JjL2NvbXBvbmVudHMvUG9sbENyZWF0b3IuanN4Il0sIm1hcHBpbmdzIjoiOzs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7Ozs7Ozs7Ozs7QUFDQTs7O0FBQ0E7QUFBQTtBQUNBO0FBREE7QUFDQTtBQURBO0FBU0E7QUFHQTtBQUNBO0FBWEE7QUFDQTtBQUNBO0FBRkE7QUFGQTtBQU1BO0FBQ0E7OztBQU9BO0FBQ0E7QUFDQTtBQUFBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUVBO0FBQUE7QUFBQTtBQUNBO0FBREE7QUFHQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQVhBO0FBY0E7QUFBQTtBQUFBO0FBQ0E7QUFEQTtBQUdBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBWEE7QUFqQkE7QUFpQ0E7Ozs7QUFsREE7QUFDQTtBQW9EQSIsInNvdXJjZVJvb3QiOiIifQ==");
+	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar PollCreator = function (_React$Component) {\n  _inherits(PollCreator, _React$Component);\n\n  function PollCreator(props) {\n    _classCallCheck(this, PollCreator);\n\n    var _this = _possibleConstructorReturn(this, (PollCreator.__proto__ || Object.getPrototypeOf(PollCreator)).call(this, props));\n\n    _this.submitHandleChange = function () {\n      _this.props.onUserInput(_this.state.newPollName, _this.state.newPollOptions.replace(/[\\s,]+/g, ',').split(','), _this.props.pollID);\n    };\n\n    _this.handleChange = function (e) {\n      _this.setState(_defineProperty({}, e.target.name, e.target.value));\n    };\n\n    _this.state = {\n      newPollName: '',\n      newPollOptions: []\n    };\n    return _this;\n  }\n\n  _createClass(PollCreator, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        'form',\n        null,\n        _react2.default.createElement(\n          _reactBootstrap.ControlLabel,\n          null,\n          'Create a new poll'\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'newPollName',\n            required: true,\n            value: this.state.newPollName,\n            placeholder: 'New poll name',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Enter a new poll name'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'newPollOptions',\n            required: true,\n            value: this.state.newPollOptions,\n            placeholder: 'new Poll Options',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'new poll options, separated by commas'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.Button,\n          { onClick: this.submitHandleChange },\n          'Submit Poll'\n        )\n      );\n    }\n  }]);\n\n  return PollCreator;\n}(_react2.default.Component);\n\nmodule.exports = PollCreator;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ4LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL1BvbGxDcmVhdG9yLmpzeD9iNjQyIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCB7Rm9ybUdyb3VwLCBDb250cm9sTGFiZWwsIEZvcm1Db250cm9sLCBIZWxwQmxvY2ssIEJ1dHRvbn0gZnJvbSAncmVhY3QtYm9vdHN0cmFwJztcblxuY2xhc3MgUG9sbENyZWF0b3IgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICBjb25zdHJ1Y3Rvcihwcm9wcykge1xuICAgIHN1cGVyKHByb3BzKVxuICAgIHRoaXMuc3RhdGUgPSB7XG4gICAgICBuZXdQb2xsTmFtZTogJycsXG4gICAgICBuZXdQb2xsT3B0aW9uczogW11cbiAgICB9XG4gIH1cbiAgXG4gIHN1Ym1pdEhhbmRsZUNoYW5nZSA9ICgpID0+IHtcbiAgICB0aGlzLnByb3BzLm9uVXNlcklucHV0KFxuICAgICAgdGhpcy5zdGF0ZS5uZXdQb2xsTmFtZSxcbiAgICAgIHRoaXMuc3RhdGUubmV3UG9sbE9wdGlvbnMucmVwbGFjZSgvW1xccyxdKy9nLCAnLCcpLnNwbGl0KCcsJyksXG4gICAgICB0aGlzLnByb3BzLnBvbGxJRFxuICAgICk7XG4gIH1cblxuICBoYW5kbGVDaGFuZ2UgPSAoZSkgPT4ge1xuICAgIHRoaXMuc2V0U3RhdGUoe1xuICAgICAgW2UudGFyZ2V0Lm5hbWVdOiBlLnRhcmdldC52YWx1ZVxuICAgIH0pO1xuICB9XG5cbiAgcmVuZGVyKCkge1xuICAgIHJldHVybiAoXG4gICAgICA8Zm9ybT5cbiAgICAgICAgPENvbnRyb2xMYWJlbD5DcmVhdGUgYSBuZXcgcG9sbDwvQ29udHJvbExhYmVsPlxuXG4gICAgICAgIDxGb3JtR3JvdXBcbiAgICAgICAgICBjb250cm9sSWQ9XCJmb3JtQmFzaWNUZXh0XCJcbiAgICAgICAgICA+XG4gICAgICAgICAgPEZvcm1Db250cm9sXG4gICAgICAgICAgICB0eXBlPVwidGV4dFwiXG4gICAgICAgICAgICBuYW1lPVwibmV3UG9sbE5hbWVcIiBcbiAgICAgICAgICAgIHJlcXVpcmVkIFxuICAgICAgICAgICAgdmFsdWU9e3RoaXMuc3RhdGUubmV3UG9sbE5hbWV9XG4gICAgICAgICAgICBwbGFjZWhvbGRlcj1cIk5ldyBwb2xsIG5hbWVcIlxuICAgICAgICAgICAgb25DaGFuZ2U9e3RoaXMuaGFuZGxlQ2hhbmdlfS8+XG4gICAgICAgICAgPEZvcm1Db250cm9sLkZlZWRiYWNrLz5cbiAgICAgICAgICA8SGVscEJsb2NrPkVudGVyIGEgbmV3IHBvbGwgbmFtZTwvSGVscEJsb2NrPlxuICAgICAgICA8L0Zvcm1Hcm91cD5cblxuICAgICAgICA8Rm9ybUdyb3VwXG4gICAgICAgICAgY29udHJvbElkPVwiZm9ybUJhc2ljVGV4dFwiXG4gICAgICAgICAgPlxuICAgICAgICAgIDxGb3JtQ29udHJvbFxuICAgICAgICAgICAgdHlwZT1cInRleHRcIlxuICAgICAgICAgICAgbmFtZT1cIm5ld1BvbGxPcHRpb25zXCIgXG4gICAgICAgICAgICByZXF1aXJlZCBcbiAgICAgICAgICAgIHZhbHVlPXt0aGlzLnN0YXRlLm5ld1BvbGxPcHRpb25zfVxuICAgICAgICAgICAgcGxhY2Vob2xkZXI9XCJuZXcgUG9sbCBPcHRpb25zXCJcbiAgICAgICAgICAgIG9uQ2hhbmdlPXt0aGlzLmhhbmRsZUNoYW5nZX0vPlxuICAgICAgICAgIDxGb3JtQ29udHJvbC5GZWVkYmFjay8+XG4gICAgICAgICAgPEhlbHBCbG9jaz5uZXcgcG9sbCBvcHRpb25zLCBzZXBhcmF0ZWQgYnkgY29tbWFzPC9IZWxwQmxvY2s+XG4gICAgICAgIDwvRm9ybUdyb3VwPlxuICAgICAgICBcbiAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXt0aGlzLnN1Ym1pdEhhbmRsZUNoYW5nZX0+U3VibWl0IFBvbGw8L0J1dHRvbj5cbiAgICAgIDwvZm9ybT5cbiAgICApO1xuICB9XG59XG5cbm1vZHVsZS5leHBvcnRzID0gUG9sbENyZWF0b3JcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gc3JjL2NvbXBvbmVudHMvUG9sbENyZWF0b3IuanN4Il0sIm1hcHBpbmdzIjoiOzs7O0FBQUE7QUFDQTs7O0FBQUE7QUFDQTs7Ozs7Ozs7Ozs7QUFDQTs7O0FBQ0E7QUFBQTtBQUNBO0FBREE7QUFDQTtBQURBO0FBU0E7QUFLQTtBQUNBO0FBZkE7QUFpQkE7QUFHQTtBQUNBO0FBbkJBO0FBQ0E7QUFDQTtBQUZBO0FBRkE7QUFNQTtBQUNBOzs7QUFlQTtBQUNBO0FBQ0E7QUFBQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFFQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBR0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFYQTtBQWNBO0FBQUE7QUFBQTtBQUNBO0FBREE7QUFHQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQVhBO0FBY0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQS9CQTtBQWtDQTs7OztBQTNEQTtBQUNBO0FBNkRBIiwic291cmNlUm9vdCI6IiJ9");
 
 /***/ },
 /* 449 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar PollCreator = function (_React$Component) {\n  _inherits(PollCreator, _React$Component);\n\n  function PollCreator(props) {\n    _classCallCheck(this, PollCreator);\n\n    var _this = _possibleConstructorReturn(this, (PollCreator.__proto__ || Object.getPrototypeOf(PollCreator)).call(this, props));\n\n    _this.handleChange = function (e) {\n      _this.setState(_defineProperty({}, e.target.name, e.target.value));\n    };\n\n    _this.state = {\n      title: 'Favourite Superhero?',\n      options: ['batman', 'he-man', 'superman']\n    };\n    return _this;\n  }\n\n  _createClass(PollCreator, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        'form',\n        null,\n        _react2.default.createElement(\n          _reactBootstrap.ControlLabel,\n          null,\n          'Edit Poll'\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'title',\n            required: true,\n            value: this.state.title,\n            placeholder: 'Title',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Enter a Title'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'options',\n            required: true,\n            value: this.state.options.join(', '),\n            placeholder: 'Options',\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Options, separated by commas'\n          )\n        )\n      );\n    }\n  }]);\n\n  return PollCreator;\n}(_react2.default.Component);\n\nmodule.exports = PollCreator;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0VkaXRQb2xsLmpzeD9kMDI2Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCB7Rm9ybUdyb3VwLCBDb250cm9sTGFiZWwsIEZvcm1Db250cm9sLCBIZWxwQmxvY2t9IGZyb20gJ3JlYWN0LWJvb3RzdHJhcCc7XG5cbmNsYXNzIFBvbGxDcmVhdG9yIGV4dGVuZHMgUmVhY3QuQ29tcG9uZW50IHtcbiAgY29uc3RydWN0b3IocHJvcHMpIHtcbiAgICBzdXBlcihwcm9wcylcbiAgICB0aGlzLnN0YXRlID0ge1xuICAgICAgdGl0bGU6ICdGYXZvdXJpdGUgU3VwZXJoZXJvPycsXG4gICAgICBvcHRpb25zOiBbJ2JhdG1hbicsICdoZS1tYW4nLCAnc3VwZXJtYW4nXVxuICAgIH1cbiAgfVxuICBcbiAgaGFuZGxlQ2hhbmdlID0gKGUpID0+IHtcbiAgICB0aGlzLnNldFN0YXRlKHtcbiAgICAgIFtlLnRhcmdldC5uYW1lXTogZS50YXJnZXQudmFsdWVcbiAgICB9KTtcbiAgfVxuXG4gIHJlbmRlcigpIHtcbiAgICByZXR1cm4gKFxuICAgICAgPGZvcm0+XG4gICAgICAgIDxDb250cm9sTGFiZWw+RWRpdCBQb2xsPC9Db250cm9sTGFiZWw+XG5cbiAgICAgICAgPEZvcm1Hcm91cFxuICAgICAgICAgIGNvbnRyb2xJZD1cImZvcm1CYXNpY1RleHRcIlxuICAgICAgICAgID5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2xcbiAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgIG5hbWU9XCJ0aXRsZVwiIFxuICAgICAgICAgICAgcmVxdWlyZWQgXG4gICAgICAgICAgICB2YWx1ZT17dGhpcy5zdGF0ZS50aXRsZX1cbiAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiVGl0bGVcIlxuICAgICAgICAgICAgb25DaGFuZ2U9e3RoaXMuaGFuZGxlQ2hhbmdlfS8+XG4gICAgICAgICAgPEZvcm1Db250cm9sLkZlZWRiYWNrLz5cbiAgICAgICAgICA8SGVscEJsb2NrPkVudGVyIGEgVGl0bGU8L0hlbHBCbG9jaz5cbiAgICAgICAgPC9Gb3JtR3JvdXA+XG5cbiAgICAgICAgPEZvcm1Hcm91cFxuICAgICAgICAgIGNvbnRyb2xJZD1cImZvcm1CYXNpY1RleHRcIlxuICAgICAgICAgID5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2xcbiAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgIG5hbWU9XCJvcHRpb25zXCIgXG4gICAgICAgICAgICByZXF1aXJlZCBcbiAgICAgICAgICAgIHZhbHVlPXt0aGlzLnN0YXRlLm9wdGlvbnMuam9pbignLCAnKX1cbiAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiT3B0aW9uc1wiXG4gICAgICAgICAgICBvbkNoYW5nZT17dGhpcy5oYW5kbGVDaGFuZ2V9Lz5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2wuRmVlZGJhY2svPlxuICAgICAgICAgIDxIZWxwQmxvY2s+T3B0aW9ucywgc2VwYXJhdGVkIGJ5IGNvbW1hczwvSGVscEJsb2NrPlxuICAgICAgICA8L0Zvcm1Hcm91cD5cblxuICAgICAgPC9mb3JtPlxuICAgICk7XG4gIH1cbn1cblxubW9kdWxlLmV4cG9ydHMgPSBQb2xsQ3JlYXRvclxuXG5cbi8vIFdFQlBBQ0sgRk9PVEVSIC8vXG4vLyBzcmMvY29tcG9uZW50cy9FZGl0UG9sbC5qc3giXSwibWFwcGluZ3MiOiI7Ozs7QUFBQTtBQUNBOzs7QUFBQTtBQUNBOzs7Ozs7Ozs7OztBQUNBOzs7QUFDQTtBQUFBO0FBQ0E7QUFEQTtBQUNBO0FBREE7QUFTQTtBQUdBO0FBQ0E7QUFYQTtBQUNBO0FBQ0E7QUFGQTtBQUZBO0FBTUE7QUFDQTs7O0FBT0E7QUFDQTtBQUNBO0FBQUE7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBRUE7QUFBQTtBQUFBO0FBQ0E7QUFEQTtBQUdBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBWEE7QUFjQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBR0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFYQTtBQWpCQTtBQWlDQTs7OztBQWxEQTtBQUNBO0FBb0RBIiwic291cmNlUm9vdCI6IiJ9");
+	eval("'use strict';\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar EditPoll = function (_React$Component) {\n  _inherits(EditPoll, _React$Component);\n\n  function EditPoll(props) {\n    _classCallCheck(this, EditPoll);\n\n    var _this = _possibleConstructorReturn(this, (EditPoll.__proto__ || Object.getPrototypeOf(EditPoll)).call(this, props));\n\n    _this.submitHandleChange = function () {\n      _this.props.onUserInput(_this.state.editPollName, _this.state.editPollOptions.replace(/[\\s,]+/g, ',').split(','), _this.props.pollId);\n    };\n\n    _this.handleChange = function (e) {\n      _this.setState(_defineProperty({}, e.target.name, e.target.value));\n    };\n\n    _this.poll = _this.props.dataModel.find(function (p) {\n      return p._id === _this.props.pollId;\n    });\n    _this.state = {\n      editPollName: _this.poll.pollName,\n      editPollOptions: _this.poll.pollOptions.map(function (poll) {\n        return poll.option;\n      }).join(',')\n    };\n    return _this;\n  }\n\n  _createClass(EditPoll, [{\n    key: 'render',\n    value: function render() {\n      return _react2.default.createElement(\n        'form',\n        null,\n        _react2.default.createElement(\n          _reactBootstrap.ControlLabel,\n          null,\n          'Edit Poll'\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'editPollName',\n            required: true,\n            defaultValue: this.state.editPollName,\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Edit Poll Name'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.FormGroup,\n          {\n            controlId: 'formBasicText'\n          },\n          _react2.default.createElement(_reactBootstrap.FormControl, {\n            type: 'text',\n            name: 'editPollOptions',\n            required: true,\n            defaultValue: this.state.editPollOptions,\n            onChange: this.handleChange }),\n          _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null),\n          _react2.default.createElement(\n            _reactBootstrap.HelpBlock,\n            null,\n            'Edit options, separated by commas'\n          )\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.Button,\n          { onClick: this.submitHandleChange },\n          'Save Poll'\n        )\n      );\n    }\n  }]);\n\n  return EditPoll;\n}(_react2.default.Component);\n\nmodule.exports = EditPoll;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDQ5LmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0VkaXRQb2xsLmpzeD9kMDI2Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCB7Rm9ybUdyb3VwLCBDb250cm9sTGFiZWwsIEZvcm1Db250cm9sLCBIZWxwQmxvY2ssIEJ1dHRvbn0gZnJvbSAncmVhY3QtYm9vdHN0cmFwJztcblxuY2xhc3MgRWRpdFBvbGwgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICBjb25zdHJ1Y3Rvcihwcm9wcykge1xuICAgIHN1cGVyKHByb3BzKVxuICAgIHRoaXMucG9sbCA9IHRoaXMucHJvcHMuZGF0YU1vZGVsLmZpbmQocCA9PiBwLl9pZCA9PT0gdGhpcy5wcm9wcy5wb2xsSWQpXG4gICAgdGhpcy5zdGF0ZSA9IHtcbiAgICAgIGVkaXRQb2xsTmFtZTogdGhpcy5wb2xsLnBvbGxOYW1lLFxuICAgICAgZWRpdFBvbGxPcHRpb25zOiB0aGlzLnBvbGwucG9sbE9wdGlvbnMubWFwKHBvbGwgPT4gcG9sbC5vcHRpb24pLmpvaW4oJywnKVxuICAgIH1cbiAgfVxuXG4gIHN1Ym1pdEhhbmRsZUNoYW5nZSA9ICgpID0+IHtcbiAgICB0aGlzLnByb3BzLm9uVXNlcklucHV0KFxuICAgICAgdGhpcy5zdGF0ZS5lZGl0UG9sbE5hbWUsXG4gICAgICB0aGlzLnN0YXRlLmVkaXRQb2xsT3B0aW9ucy5yZXBsYWNlKC9bXFxzLF0rL2csICcsJykuc3BsaXQoJywnKSxcbiAgICAgIHRoaXMucHJvcHMucG9sbElkXG4gICAgKTtcbiAgfVxuXG4gIGhhbmRsZUNoYW5nZSA9IChlKSA9PiB7XG4gICAgdGhpcy5zZXRTdGF0ZSh7XG4gICAgICBbZS50YXJnZXQubmFtZV06IGUudGFyZ2V0LnZhbHVlXG4gICAgfSk7XG4gIH1cblxuICByZW5kZXIoKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxmb3JtPlxuICAgICAgICA8Q29udHJvbExhYmVsPkVkaXQgUG9sbDwvQ29udHJvbExhYmVsPlxuXG4gICAgICAgIDxGb3JtR3JvdXBcbiAgICAgICAgICBjb250cm9sSWQ9XCJmb3JtQmFzaWNUZXh0XCJcbiAgICAgICAgICA+XG4gICAgICAgICAgPEZvcm1Db250cm9sXG4gICAgICAgICAgICB0eXBlPVwidGV4dFwiXG4gICAgICAgICAgICBuYW1lPVwiZWRpdFBvbGxOYW1lXCIgXG4gICAgICAgICAgICByZXF1aXJlZCBcbiAgICAgICAgICAgIGRlZmF1bHRWYWx1ZT17dGhpcy5zdGF0ZS5lZGl0UG9sbE5hbWV9XG4gICAgICAgICAgICBvbkNoYW5nZT17dGhpcy5oYW5kbGVDaGFuZ2V9Lz5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2wuRmVlZGJhY2svPlxuICAgICAgICAgIDxIZWxwQmxvY2s+RWRpdCBQb2xsIE5hbWU8L0hlbHBCbG9jaz5cbiAgICAgICAgPC9Gb3JtR3JvdXA+XG5cbiAgICAgICAgPEZvcm1Hcm91cFxuICAgICAgICAgIGNvbnRyb2xJZD1cImZvcm1CYXNpY1RleHRcIlxuICAgICAgICAgID5cbiAgICAgICAgICA8Rm9ybUNvbnRyb2xcbiAgICAgICAgICAgIHR5cGU9XCJ0ZXh0XCJcbiAgICAgICAgICAgIG5hbWU9XCJlZGl0UG9sbE9wdGlvbnNcIiBcbiAgICAgICAgICAgIHJlcXVpcmVkIFxuICAgICAgICAgICAgZGVmYXVsdFZhbHVlPXt0aGlzLnN0YXRlLmVkaXRQb2xsT3B0aW9uc31cbiAgICAgICAgICAgIG9uQ2hhbmdlPXt0aGlzLmhhbmRsZUNoYW5nZX0vPlxuICAgICAgICAgIDxGb3JtQ29udHJvbC5GZWVkYmFjay8+XG4gICAgICAgICAgPEhlbHBCbG9jaz5FZGl0IG9wdGlvbnMsIHNlcGFyYXRlZCBieSBjb21tYXM8L0hlbHBCbG9jaz5cbiAgICAgICAgPC9Gb3JtR3JvdXA+XG5cbiAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXt0aGlzLnN1Ym1pdEhhbmRsZUNoYW5nZX0+U2F2ZSBQb2xsPC9CdXR0b24+XG4gICAgICA8L2Zvcm0+XG4gICAgKTtcbiAgfVxufVxuXG5tb2R1bGUuZXhwb3J0cyA9IEVkaXRQb2xsXG5cblxuLy8gV0VCUEFDSyBGT09URVIgLy9cbi8vIHNyYy9jb21wb25lbnRzL0VkaXRQb2xsLmpzeCJdLCJtYXBwaW5ncyI6Ijs7OztBQUFBO0FBQ0E7OztBQUFBO0FBQ0E7Ozs7Ozs7Ozs7O0FBQ0E7OztBQUNBO0FBQUE7QUFDQTtBQURBO0FBQ0E7QUFEQTtBQVVBO0FBS0E7QUFDQTtBQWhCQTtBQWtCQTtBQUdBO0FBQ0E7QUFwQkE7QUFBQTtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFBQTtBQUZBO0FBSEE7QUFPQTtBQUNBOzs7QUFlQTtBQUNBO0FBQ0E7QUFBQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFFQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBR0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBVkE7QUFhQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBR0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBVkE7QUFhQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBN0JBO0FBZ0NBOzs7O0FBMURBO0FBQ0E7QUE0REEiLCJzb3VyY2VSb290IjoiIn0=");
 
 /***/ },
 /* 450 */
 /***/ function(module, exports, __webpack_require__) {
 
-	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _Chart = __webpack_require__(451);\n\nvar _Chart2 = _interopRequireDefault(_Chart);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nvar DisplayPoll = function DisplayPoll(props) {\n\n  var pollOptions = ['superman', 'he-man', 'superted'].map(function (option, idx) {\n    return _react2.default.createElement(\n      _reactBootstrap.ListGroupItem,\n      { className: 'list-group-item', key: idx },\n      _react2.default.createElement(\n        _reactBootstrap.Radio,\n        { name: 'radioGroup' },\n        option\n      )\n    );\n  });\n\n  return _react2.default.createElement(\n    'div',\n    null,\n    _react2.default.createElement(\n      'h2',\n      null,\n      'Favourite Superhero '\n    ),\n    _react2.default.createElement(_Chart2.default, null),\n    _react2.default.createElement(\n      'h3',\n      null,\n      'Poll Options '\n    ),\n    _react2.default.createElement(\n      _reactBootstrap.ListGroup,\n      null,\n      pollOptions\n    ),\n    _react2.default.createElement(\n      _reactBootstrap.Button,\n      null,\n      'Submit Vote'\n    )\n  );\n};\n\nexports.default = DisplayPoll;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDUwLmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0Rpc3BsYXlQb2xsLmpzeD9iMWFmIl0sInNvdXJjZXNDb250ZW50IjpbIid1c2Ugc3RyaWN0J1xuXG5pbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnO1xuaW1wb3J0IHtMaXN0R3JvdXAsIExpc3RHcm91cEl0ZW0sIEdyaWQsIEJ1dHRvbiwgUmFkaW99IGZyb20gJ3JlYWN0LWJvb3RzdHJhcCc7XG5pbXBvcnQgQ2hhcnQgZnJvbSAnLi9DaGFydCdcblxuY29uc3QgRGlzcGxheVBvbGwgPSAocHJvcHMpID0+IHtcblxuICBjb25zdCBwb2xsT3B0aW9ucyA9IFsnc3VwZXJtYW4nLCAnaGUtbWFuJywgJ3N1cGVydGVkJ10ubWFwKChvcHRpb24sIGlkeCkgPT4ge1xuICAgIHJldHVybiA8TGlzdEdyb3VwSXRlbSBjbGFzc05hbWU9XCJsaXN0LWdyb3VwLWl0ZW1cIiBrZXk9e2lkeH0+PFJhZGlvIG5hbWU9J3JhZGlvR3JvdXAnPntvcHRpb259PC9SYWRpbz48L0xpc3RHcm91cEl0ZW0+XG4gIH0pXG5cbiAgcmV0dXJuIChcbiAgICA8ZGl2PlxuICAgICAgPGgyPkZhdm91cml0ZSBTdXBlcmhlcm8gPC9oMj5cbiAgICAgIDxDaGFydCAvPlxuICAgICAgPGgzPlBvbGwgT3B0aW9ucyA8L2gzPlxuICAgICAgICA8TGlzdEdyb3VwPlxuICAgICAgICAgIHtwb2xsT3B0aW9uc31cbiAgICAgICAgPC9MaXN0R3JvdXA+XG4gICAgICA8QnV0dG9uPlN1Ym1pdCBWb3RlPC9CdXR0b24+XG4gICAgPC9kaXY+XG4gICk7XG59XG5cbmV4cG9ydCBkZWZhdWx0IERpc3BsYXlQb2xsO1xuXG5cbi8vIFdFQlBBQ0sgRk9PVEVSIC8vXG4vLyBzcmMvY29tcG9uZW50cy9EaXNwbGF5UG9sbC5qc3giXSwibWFwcGluZ3MiOiJBQUFBO0FBQ0E7Ozs7O0FBQ0E7QUFDQTs7O0FBQUE7QUFDQTtBQUFBO0FBQ0E7Ozs7O0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFBQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFDQTtBQUNBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFDQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBR0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQVBBO0FBVUE7QUFDQTsiLCJzb3VyY2VSb290IjoiIn0=");
+	eval("'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if (\"value\" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();\n\nvar _react = __webpack_require__(1);\n\nvar _react2 = _interopRequireDefault(_react);\n\nvar _reactBootstrap = __webpack_require__(190);\n\nvar _Chart = __webpack_require__(451);\n\nvar _Chart2 = _interopRequireDefault(_Chart);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }\n\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nfunction _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\"); } return call && (typeof call === \"object\" || typeof call === \"function\") ? call : self; }\n\nfunction _inherits(subClass, superClass) { if (typeof superClass !== \"function\" && superClass !== null) { throw new TypeError(\"Super expression must either be null or a function, not \" + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }\n\nvar DisplayPoll = function (_React$Component) {\n  _inherits(DisplayPoll, _React$Component);\n\n  function DisplayPoll(props) {\n    _classCallCheck(this, DisplayPoll);\n\n    var _this = _possibleConstructorReturn(this, (DisplayPoll.__proto__ || Object.getPrototypeOf(DisplayPoll)).call(this, props));\n\n    _this.state = {\n      poll: _this.props.dataModel.find(function (p) {\n        return p._id === _this.props.pollId;\n      })\n    };\n    return _this;\n  }\n\n  _createClass(DisplayPoll, [{\n    key: 'render',\n    value: function render() {\n      var _this2 = this;\n\n      var poll = this.props.dataModel.find(function (p) {\n        return p._id === _this2.props.pollId;\n      });\n\n      var pollOptions = poll.pollOptions.map(function (option) {\n\n        return _react2.default.createElement(\n          _reactBootstrap.ListGroupItem,\n          { className: 'list-group-item', key: option._id },\n          _react2.default.createElement(\n            _reactBootstrap.Radio,\n            { name: 'radioGroup' },\n            option.option\n          )\n        );\n      });\n\n      return _react2.default.createElement(\n        'div',\n        null,\n        _react2.default.createElement(\n          'h2',\n          null,\n          'Favourite Superhero'\n        ),\n        _react2.default.createElement(_Chart2.default, { poll: this.state.poll }),\n        _react2.default.createElement(\n          'h3',\n          null,\n          'Poll Options'\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.ListGroup,\n          null,\n          pollOptions\n        ),\n        _react2.default.createElement(\n          _reactBootstrap.Button,\n          null,\n          'Submit Vote'\n        )\n      );\n    }\n  }]);\n\n  return DisplayPoll;\n}(_react2.default.Component);\n\nexports.default = DisplayPoll;//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiNDUwLmpzIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vL3NyYy9jb21wb25lbnRzL0Rpc3BsYXlQb2xsLmpzeD9iMWFmIl0sInNvdXJjZXNDb250ZW50IjpbIid1c2Ugc3RyaWN0J1xuXG5pbXBvcnQgUmVhY3QgZnJvbSAncmVhY3QnO1xuaW1wb3J0IHtMaXN0R3JvdXAsIExpc3RHcm91cEl0ZW0sIEdyaWQsIEJ1dHRvbiwgUmFkaW99IGZyb20gJ3JlYWN0LWJvb3RzdHJhcCc7XG5pbXBvcnQgQ2hhcnQgZnJvbSAnLi9DaGFydCdcblxuY2xhc3MgRGlzcGxheVBvbGwgZXh0ZW5kcyBSZWFjdC5Db21wb25lbnQge1xuICBjb25zdHJ1Y3Rvcihwcm9wcykge1xuICAgIHN1cGVyKHByb3BzKVxuICAgIHRoaXMuc3RhdGUgPSB7XG4gICAgICBwb2xsOiB0aGlzLnByb3BzLmRhdGFNb2RlbC5maW5kKHAgPT4gcC5faWQgPT09IHRoaXMucHJvcHMucG9sbElkKVxuICAgIH1cbiAgfVxuXG4gIHJlbmRlcigpIHtcbiAgICBjb25zdCBwb2xsID0gdGhpcy5wcm9wc1xuICAgICAgLmRhdGFNb2RlbFxuICAgICAgLmZpbmQocCA9PiBwLl9pZCA9PT0gdGhpcy5wcm9wcy5wb2xsSWQpXG5cbiAgICBjb25zdCBwb2xsT3B0aW9ucyA9IHBvbGxcbiAgICAgIC5wb2xsT3B0aW9uc1xuICAgICAgLm1hcChvcHRpb24gPT4ge1xuXG4gICAgICAgIHJldHVybiAoXG4gICAgICAgICAgPExpc3RHcm91cEl0ZW0gY2xhc3NOYW1lPVwibGlzdC1ncm91cC1pdGVtXCIga2V5PXtvcHRpb24uX2lkfT5cbiAgICAgICAgICAgIDxSYWRpbyBuYW1lPSdyYWRpb0dyb3VwJz5cbiAgICAgICAgICAgICAge29wdGlvbi5vcHRpb259XG4gICAgICAgICAgICA8L1JhZGlvPlxuICAgICAgICAgIDwvTGlzdEdyb3VwSXRlbT5cbiAgICAgICAgKVxuICAgICAgfSlcblxuICAgIHJldHVybiAoXG4gICAgICA8ZGl2PlxuICAgICAgICA8aDI+RmF2b3VyaXRlIFN1cGVyaGVybzwvaDI+XG4gICAgICAgIDxDaGFydCBwb2xsID0ge3RoaXMuc3RhdGUucG9sbH0gLz5cbiAgICAgICAgPGgzPlBvbGwgT3B0aW9uczwvaDM+XG4gICAgICAgIDxMaXN0R3JvdXA+XG4gICAgICAgICAge3BvbGxPcHRpb25zfVxuICAgICAgICA8L0xpc3RHcm91cD5cbiAgICAgICAgPEJ1dHRvbj5TdWJtaXQgVm90ZTwvQnV0dG9uPlxuICAgICAgPC9kaXY+XG4gICAgKTtcbiAgfVxufVxuXG5leHBvcnQgZGVmYXVsdCBEaXNwbGF5UG9sbDtcblxuXG4vLyBXRUJQQUNLIEZPT1RFUiAvL1xuLy8gc3JjL2NvbXBvbmVudHMvRGlzcGxheVBvbGwuanN4Il0sIm1hcHBpbmdzIjoiQUFBQTtBQUNBOzs7Ozs7O0FBQ0E7QUFDQTs7O0FBQUE7QUFDQTtBQUFBO0FBQ0E7Ozs7Ozs7Ozs7O0FBQ0E7OztBQUNBO0FBQUE7QUFDQTtBQURBO0FBQ0E7QUFDQTtBQUNBO0FBQUE7QUFBQTtBQURBO0FBRkE7QUFLQTtBQUNBOzs7QUFDQTtBQUFBO0FBQ0E7QUFBQTtBQUVBO0FBQUE7QUFDQTtBQUNBO0FBQ0E7QUFHQTtBQUNBO0FBQUE7QUFDQTtBQUFBO0FBQUE7QUFDQTtBQURBO0FBREE7QUFNQTtBQUNBO0FBQ0E7QUFDQTtBQUFBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUNBO0FBQ0E7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUNBO0FBQUE7QUFBQTtBQUNBO0FBREE7QUFHQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBUEE7QUFVQTs7OztBQXJDQTtBQUNBO0FBdUNBIiwic291cmNlUm9vdCI6IiJ9");
 
 /***/ },
 /* 451 */
