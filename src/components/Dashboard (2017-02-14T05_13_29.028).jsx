@@ -13,18 +13,17 @@ class Dashboard extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      // polls: this.props.dataModel,
+      polls: this.props.dataModel,
       pollName: '',
       options: []
     }
   }
 
-  handlePollEdit = (pollName, options, pollId) => {
-    // const poll = this.state.polls.find(p => p._id === pollId)
-    // poll.pollName = pollName
-    // poll.pollOptions.map(val) => {return val.option = }
-    // this.setState({polls: this.state.polls})
-    this.setState({pollName,options})
+  handlePollEdit = (pollName, options, pollID) => {
+    const poll = this.props.dataModel.find(p => p._id === this.props.pollId)
+    poll.pollName = pollName
+    poll.pollOptions.map(val) => {return val.option = }
+    this.setState({polls})
   }
 
   handlePollNew = (pollName, options, pollID) => {
@@ -37,7 +36,7 @@ class Dashboard extends React.Component {
         <ViewPolls dataModel={this.props.dataModel} />
         <Register />
         <UserSettings />
-        <PollCreator onUserInput = {this.handlePollNew} />
+        <PollCreator onUserInput = {this.handlePollEdit} />
         <EditPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
         <DisplayPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" />
       </Grid>

@@ -14,7 +14,8 @@ class EditPoll extends React.Component {
   submitHandleChange = () => {
     this.props.onUserInput(
       this.state.editPollName,
-      this.state.editPollOptions.replace(/[\s,]+/g, ',').split(',')
+      this.state.editPollOptions.replace(/[\s,]+/g, ',').split(','),
+      this.props.pollId
     );
   }
 
@@ -25,8 +26,6 @@ class EditPoll extends React.Component {
   }
 
   render() {
-
-    console.log(this.state.editPollOptions)
     return (
       <form>
         <ControlLabel>Edit Poll</ControlLabel>

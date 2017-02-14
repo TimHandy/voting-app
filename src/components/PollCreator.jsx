@@ -13,7 +13,8 @@ class PollCreator extends React.Component {
   submitHandleChange = () => {
     this.props.onUserInput(
       this.state.newPollName,
-      this.state.newPollOptions.replace(/[\s,]+/g, ',').split(',')
+      this.state.newPollOptions.replace(/[\s,]+/g, ',').split(','),
+      this.props.pollID
     );
   }
 
@@ -24,7 +25,6 @@ class PollCreator extends React.Component {
   }
 
   render() {
-    console.log(this.props)
     return (
       <form>
         <ControlLabel>Create a new poll</ControlLabel>
