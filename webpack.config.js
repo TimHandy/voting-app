@@ -68,7 +68,7 @@ module.exports = {
     host: 'localhost', // Defaults to `localhost` anyway
     port: 8080, // Default is 8080 anyway
     proxy: {
-      '/api/': 'http://localhost:3000/'  //forwards api requests to the backend server port.
+      '/api': 'http://localhost:3000/'  //forwards api requests to the backend server port.
     }
   },
   plugins: [

@@ -17,19 +17,31 @@ class Dashboard extends React.Component {
     super(props)
     this.state = {
       dataModel: [{
-    "_id": "58a1ba69af38fd34724f95db",
-    "username": "tim",
-    "pollName": "favourite hero",
-    "pollOptions": [
-      {
-        "option": "batman",
-        "score": 0,
-        "_id": "58a1ba69af38fd34724f95dd"
-      }
-    ]
-  }],
+                  "_id": "58a1ba69af38fd34724f95db",
+                  "username": "tim",
+                  "pollName": "favourite hero",
+                  "pollOptions": [
+                    {
+                      "option": "batman",
+                      "score": 0,
+                      "_id": "58a1ba69af38fd34724f95dd"
+                    }
+                  ]
+                }],
       pollName: '',
-      options: []
+      options: [],
+      poll: {
+            "_id": "58a1ba69af38fd34724f95db",
+            "username": "tim",
+            "pollName": "favourite hero",
+            "pollOptions": [
+              {
+                "option": "batman",
+                "score": 0,
+                "_id": "58a1ba69af38fd34724f95dd"
+              }
+            ]
+          }
     }
   }
 
@@ -59,16 +71,21 @@ class Dashboard extends React.Component {
     this.setState({pollName,options})
   }
 
+  handleDisplayPoll = (poll) => {
+    this.setState({poll})
+    console.log('poll', poll)
+  }
+
   render() {
     //console.log(this.state.dataModel)
     return (
       <Grid >
-        <ViewPolls dataModel={this.state.dataModel} />
+        <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/>
         <Register />
         <UserSettings />
         <PollCreator onUserInput = {this.handlePollNew} />
         <EditPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
-        <DisplayPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" />
+        <DisplayPoll poll = {this.state.poll} />
       </Grid>
     )
   }

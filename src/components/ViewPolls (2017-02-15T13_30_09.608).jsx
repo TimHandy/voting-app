@@ -5,14 +5,14 @@ import { ListGroup, ListGroupItem} from 'react-bootstrap';
 
 const ViewPolls = (props) => {
 
-  // console.log('datamodel: ', props.dataModel)
+  console.log('datamodel: ', props.dataModel)
 
-  const handleClick = (poll) => {
-    props.onUserClick(poll)
+  const handleClick = (e) => {
+    console.log(e.target)
   }
 
   const polls = props.dataModel.map((poll, idx) => {
-    return <ListGroupItem key={poll._id} header={poll.pollName} href="#" onClick={handleClick.bind(this, poll)}>
+    return <ListGroupItem key={poll._id} header={poll.pollName} href="#" onClick={(e) => handleClick(e)}>
       {poll.username}
     </ListGroupItem>
   })
