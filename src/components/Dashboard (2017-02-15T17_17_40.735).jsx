@@ -79,24 +79,16 @@ class Dashboard extends React.Component {
       )
   }
 
-  handleMyPolls = () => {
-    this.props.onUserClick("temp")
-    this.setState(
-        {
-          display: "EditPoll"
-        }
-      )
-  }
-
   render() {
     return (
       <Grid >
-        {this.props.display === 'MyPolls' ? (this.state.display = "MyPolls", <MyPolls dataModel={this.state.dataModel} loggedInUser = {this.props.loggedInUser} onUserClick = {this.handleMyPolls}/>) : null}
+        {this.props.display === 'MyPolls' ? <MyPolls dataModel={this.state.dataModel} loggedInUser = {this.props.loggedInUser}/> : null}
+        {this.props.display === 'MyPolls' ? this.state.display = '' : null}
         {this.state.display === 'Register' ? <Register /> : null}
         {this.state.display === 'ViewPolls' ? <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/> : null}
         {this.state.display === 'UserSettings' ? <UserSettings /> : null}
         {this.state.display === 'PollCreator' ? <PollCreator onUserInput = {this.handlePollNew} /> : null}
-        {this.state.display === 'EditPoll' ? <EditPoll dataModel={this.state.dataModel} pollId="58a354125d07640d50d04c87" onUserInput = {this.handlePollEdit} /> : null}
+        {this.state.display === 'EditPoll' ? <EditPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} /> : null}
         {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} /> : null}
        
       </Grid>
