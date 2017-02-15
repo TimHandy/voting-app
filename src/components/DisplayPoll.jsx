@@ -6,8 +6,6 @@ import Chart from './Chart'
 
 const DisplayPoll = (props) => {
 
-  console.log(props.poll)
-
   const pollOptions = props
     .poll
     .pollOptions

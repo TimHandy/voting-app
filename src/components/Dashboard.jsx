@@ -58,12 +58,8 @@ class Dashboard extends React.Component {
                       })
   }
 
-  handlePollEdit = (pollName, options, pollId) => {
-    // const poll = this.state.polls.find(p => p._id === pollId)
-    // poll.pollName = pollName
-    // poll.pollOptions.map(val) => {return val.option = }
-    // this.setState({polls: this.state.polls})
-    this.setState({pollName,options})
+  handlePollEdit = (poll) => {
+    this.setState({poll})
   }
 
   handlePollNew = (pollName, options, pollID) => {
@@ -79,11 +75,12 @@ class Dashboard extends React.Component {
       )
   }
 
-  handleMyPolls = () => {
+  handleMyPolls = (poll) => {
     this.props.onUserClick("temp")
     this.setState(
         {
-          display: "EditPoll"
+          display: "EditPoll",
+          poll : poll
         }
       )
   }
@@ -96,7 +93,7 @@ class Dashboard extends React.Component {
         {this.state.display === 'ViewPolls' ? <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/> : null}
         {this.state.display === 'UserSettings' ? <UserSettings /> : null}
         {this.state.display === 'PollCreator' ? <PollCreator onUserInput = {this.handlePollNew} /> : null}
-        {this.state.display === 'EditPoll' ? <EditPoll dataModel={this.state.dataModel} pollId="58a354125d07640d50d04c87" onUserInput = {this.handlePollEdit} /> : null}
+        {this.state.display === 'EditPoll' ? <EditPoll onUserInput = {this.handlePollEdit} poll = {this.state.poll}/> : null}
         {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} /> : null}
        
       </Grid>
