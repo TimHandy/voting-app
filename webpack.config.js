@@ -35,6 +35,7 @@ module.exports = {
         test: /\.css$/, 
         loader: "style-loader!css-loader" 
       },
+      // These loaders are rquired by React-Bootstrap: png, jpg, woff, ttf, eot, svg
       { 
         test: /\.png$/, 
         loader: "url-loader?limit=100000" 
@@ -63,20 +64,17 @@ module.exports = {
   },
   devServer: {    // npm i -D webpack-dev-server
     contentBase: path.join(__dirname, 'src'),
-    inline: true,    // removes the iframe around the webpage,
-    host: 'localhost', // Defaults to `localhost`
-    port: 8080, // Defaults to 8080
+    inline: true,    // removes the iframe around the webpage
+    host: 'localhost', // Defaults to `localhost` anyway
+    port: 8080, // Default is 8080 anyway
     proxy: {
-      '^/api/*': {
-        target: 'http://localhost:3000/api/',
-        secure: false
-      }
+      '/api/': 'http://localhost:3000/'  //forwards api requests to the backend server port.
     }
   },
   plugins: [
     new HtmlWebpackPlugin({ // npm i -D html-webpack-plugin. Enables specifying location of index.html file... so can put in src and don't require the build dir for development, i.e. don't have to run webpack.
       template: path.join(__dirname, 'src', 'index.html'),
-      inject: false   // this is required, otherwise the code gets injected twice
+      inject: false   // this is required, otherwise the code gets injected twice into the bundle.js, so console.logs show up twice for example.
     }),
       new webpack.HotModuleReplacementPlugin({
       multiStep: true

@@ -40,7 +40,7 @@ Error Responses
 * 500 Internal Server Error - Generic Error
 
 ------------------------------------------------------------------
-Find all polls by user [ Get /api/poll/:user/ ]
+Find all polls by user [ Get /user/:username/ ]
 =============
 
 Gets all polls by user

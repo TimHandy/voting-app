@@ -9,14 +9,42 @@ import PollCreator from './PollCreator'
 import EditPoll from './EditPoll'
 import DisplayPoll from './DisplayPoll'
 
+
+
+
 class Dashboard extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      // polls: this.props.dataModel,
+      dataModel: [{
+    "_id": "58a1ba69af38fd34724f95db",
+    "username": "tim",
+    "pollName": "favourite hero",
+    "pollOptions": [
+      {
+        "option": "batman",
+        "score": 0,
+        "_id": "58a1ba69af38fd34724f95dd"
+      }
+    ]
+  }],
       pollName: '',
       options: []
     }
+  }
+
+  componentWillMount = () => {
+
+    // get initial data from db and populate state
+    const dataModel = fetch("/api/poll/")
+                      .then( (blob) => {
+                        return blob.json()
+                      })
+                      .then( (j) => {
+                       this.setState({
+                         dataModel: j
+                       })
+                      })
   }
 
   handlePollEdit = (pollName, options, pollId) => {
@@ -32,14 +60,15 @@ class Dashboard extends React.Component {
   }
 
   render() {
+    //console.log(this.state.dataModel)
     return (
       <Grid >
-        <ViewPolls dataModel={this.props.dataModel} />
+        <ViewPolls dataModel={this.state.dataModel} />
         <Register />
         <UserSettings />
         <PollCreator onUserInput = {this.handlePollNew} />
-        <EditPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
-        <DisplayPoll dataModel={this.props.dataModel} pollId="58a1ba69af38fd34724f95db" />
+        <EditPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
+        <DisplayPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" />
       </Grid>
     )
   }

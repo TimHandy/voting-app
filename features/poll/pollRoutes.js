@@ -72,15 +72,16 @@ function createTestData() {
     addPollToDatabase({username: 'parm', pollName: 'favourite people', pollOptions: [{'She-Ra':0, 'super-woman': 0}]})
 }
 
+router.get('/user/:username/', pollController.findPollsByUser)  // show all polls for user
+
 router.get('/', pollController.allPolls) // return all polls 
 router.post('/', pollController.newPoll)  // create new poll
+
 
 router.get('/:id/edit', pollController.editPoll)  // show edit screen for poll
 router.put('/:id', pollController.updatePoll)  // update poll
 
 router.get('/:id', pollController.getPoll) // show poll
-
-router.get('/:user/', pollController.findPollsByUser)  // show all polls for user
 
 router.delete('/:id', pollController.deletePoll) // delete poll
 

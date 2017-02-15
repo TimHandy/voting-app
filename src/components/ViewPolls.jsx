@@ -5,14 +5,8 @@ import { ListGroup, ListGroupItem} from 'react-bootstrap';
 
 const ViewPolls = (props) => {
 
-  const allPolls = fetch("/api/poll/")
-                      .then(function(blob) {
-                        return blob.json()
-                      })
-                      .then(function(j) {
-                        console.log(j)
-                      })
-
+  
+  console.log('datamodel: ', props.dataModel)
 
 
   const polls = props.dataModel.map((poll, idx) => {
