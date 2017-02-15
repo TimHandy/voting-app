@@ -11,6 +11,11 @@ import { Button, Navbar, Nav, NavItem, NavDropdown, MenuItem } from 'react-boots
 // };
 
 const MainNav = (props) => {
+
+  const handleClick = (poll) => {
+    props.onUserClick(poll)
+  }
+
   return (
     <Navbar collapseOnSelect fixedTop fluid>
       <Navbar.Header>
@@ -21,8 +26,11 @@ const MainNav = (props) => {
       </Navbar.Header>
       <Navbar.Collapse>
         <Nav pullRight>
-          <NavItem eventKey={1} href="#"><Button>Sign Up</Button></NavItem>
-          <NavItem eventKey={2} href="#"><Button>Login</Button></NavItem>
+          {props.loggedInUser ? <NavItem eventKey={1} href="#"><Button>My Polls</Button></NavItem> : null}
+          {props.loggedInUser ? <NavItem eventKey={2} href="#"><Button>Logout</Button></NavItem> : null}
+          {!props.loggedInUser ? <NavItem eventKey={3} href="#"><Button>Sign Up</Button></NavItem> : null}
+          {!props.loggedInUser ? <NavItem eventKey={4} href="#"><Button>Login</Button></NavItem> : null}
+          
         </Nav>
       </Navbar.Collapse>
     </Navbar>

@@ -41,7 +41,8 @@ class Dashboard extends React.Component {
                 "_id": "58a1ba69af38fd34724f95dd"
               }
             ]
-          }
+          },
+      display: "ViewPolls"
     }
   }
 
@@ -72,20 +73,27 @@ class Dashboard extends React.Component {
   }
 
   handleDisplayPoll = (poll) => {
-    this.setState({poll})
-    console.log('poll', poll)
+    this.setState(
+        {
+          poll,
+          display: "DisplayPoll"
+        }
+      )
   }
 
   render() {
     //console.log(this.state.dataModel)
     return (
       <Grid >
-        <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/>
-        <Register />
-        <UserSettings />
-        <PollCreator onUserInput = {this.handlePollNew} />
-        <EditPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} />
-        <DisplayPoll poll = {this.state.poll} />
+        {this.state.display === 'Register' ? <Register /> : null}
+        {this.state.display === 'ViewPolls' ? <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/> : null}
+        
+        {this.state.display === 'UserSettings' ? <UserSettings /> : null}
+        {this.state.display === 'PollCreator' ? <PollCreator onUserInput = {this.handlePollNew} /> : null}
+        {this.state.display === 'EditPoll' ? <EditPoll dataModel={this.state.dataModel} pollId="58a1ba69af38fd34724f95db" onUserInput = {this.handlePollEdit} /> : null}
+        
+        {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} /> : null}
+       
       </Grid>
     )
   }

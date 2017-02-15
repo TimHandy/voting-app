@@ -15,15 +15,18 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      
+      display: "Jumbotron",
+      loggedInUser: "Tim"
     }
   }
   render() {
     return (
       <Grid fluid style={{"paddingTop": 50}}>
-        <MainNav />
-        <MainJumbotron />
-        <Dashboard dataModel={this.props.dataModel}/>
+        <MainNav loggedInUser={this.state.loggedInUser}/>
+        {!this.state.loggedInUser ?  <MainJumbotron /> : null}
+       
+       {this.state.loggedInUser ? <Dashboard loggedInUser={this.state.loggedInUser} dataModel={this.props.dataModel}/> : null}
+        
         <Footer />
       </Grid>
     )
