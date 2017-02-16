@@ -10,11 +10,33 @@ class PollCreator extends React.Component {
     }
   }
   
-  submitHandleChange = () => {
-    this.props.onUserInput(
-      this.state.newPollName,
-      this.state.newPollOptions.replace(/[\s,]+/g, ',').split(','),
-    );
+  submitHandleChange = (e) => {
+    e.preventDefault()
+    fetch("/api/poll/", 
+      {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          method: "POST",
+          body: JSON.stringify({
+                username: 'tim',
+                pollName: this.state.newPollName, 
+                pollOptions: [{
+                                "option": "batman",
+                                "score": 0
+                              }, {
+                                "option": "he-man",
+                                "score": 0
+                              }]
+              })
+              }).then( (blob) => {
+                                  return blob.json()
+                                })
+                                .then( (data) => {
+                                  this.props.onUserInput(data.poll)
+                                  console.log(data.poll)
+                                })
   }
 
   handleChange = (e) => {
@@ -55,7 +77,7 @@ class PollCreator extends React.Component {
           <FormControl.Feedback/>
           <HelpBlock>new poll options, separated by commas</HelpBlock>
         </FormGroup>
-        
+        {/*<input type="submit" value="Submit" />              */}
         <Button onClick={this.submitHandleChange}>Submit Poll</Button>
       </form>
     );

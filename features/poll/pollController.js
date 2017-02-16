@@ -7,7 +7,7 @@ const bodyParser = require('body-parser')
 const ObjectId = require('mongodb').ObjectId
 
 const handleError = function(res, errorMsg) {
-    console.log(errorMsg)
+    // console.log(errorMsg)
     res.status(500).json({success: false, message: errorMsg})
 }
 
@@ -34,7 +34,7 @@ module.exports.findPollsByUser = function(req, res, next) {
 }
 
 module.exports.newPoll = function(req, res, next) {
- 
+  console.log('this is req', req.body)
   const successMessage = {
     message: 'congratulations! Your poll has been posted to http://votingapp.heroku.com/Quincy/who is your fav captain'
   }
@@ -48,7 +48,7 @@ module.exports.newPoll = function(req, res, next) {
     ).save(function(err, data) {
       (err) 
         ? handleError(err, res, 'Error saving to db') 
-        : res.status(200).json({success: true, message: 'success: added'})
+        : res.status(200).json({success: true, message: 'success: added', poll: data})
     })
 }
 

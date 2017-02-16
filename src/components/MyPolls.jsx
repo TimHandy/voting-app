@@ -18,10 +18,10 @@ const MyPolls = (props) => {
 
   return (
     <Grid>
+      <Button onClick={handleClick.bind(this, null, 'PollCreator')}>New Poll</Button>
       <ListGroup>
         {polls}
       </ListGroup>
-      <Button onClick={handleClick.bind(this, null, 'PollCreator')}>New Poll</Button>
     </Grid>
   );
 }

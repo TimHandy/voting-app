@@ -124,7 +124,20 @@ Example Response
 ----------------
 200 OK
 
-{success: true, message: 'success: added'}
+{ success: true, 
+  message: 'success: added', 
+  poll: {
+          "_id": "58a1ba69af38fd34724f95db",
+          "username": "tim",
+          "pollName": "favourite hero",
+          "pollOptions": [
+            {
+              "option": "batman",
+              "score": 0,
+              "_id": "58a1ba69af38fd34724f95dd"
+            }
+          ]
+        }}
 
 Error Responses
 ---------------

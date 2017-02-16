@@ -41,7 +41,6 @@ class Dashboard extends React.Component {
             ]
           },
       display: "ViewPolls",
-      showChart : false
     }
   }
 
@@ -64,8 +63,9 @@ class Dashboard extends React.Component {
     this.props.onUserClick("MyPolls")
   }
 
-  handlePollNew = (pollName, options) => {
-    this.setState({pollName,options})
+  handlePollNew = (poll) => {
+    const updatedDataModel = this.state.dataModel.concat(poll)
+    this.setState({dataModel: updatedDataModel})
     this.props.onUserClick("MyPolls")
   }
 
@@ -85,9 +85,7 @@ class Dashboard extends React.Component {
   }
 
   handleSubmitScore = (arg) => {
-    if (arg === "showChart") {
-      this.setState({showChart: true})
-    } else {
+    if (arg === "ViewPolls") {
       this.props.onUserClick("")
       this.setState({display: arg, showChart: false})
     }
