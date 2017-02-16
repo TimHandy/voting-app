@@ -59,13 +59,24 @@ class Dashboard extends React.Component {
   }
 
   handlePollEdit = (poll) => {
-    this.setState({poll})
+  console.log(poll)
+  const arrayIndex = this.state.dataModel.findIndex(obj => obj._id === poll._id)
+
+  const updatedDataModel = this.state.dataModel.concat()
+  updatedDataModel.splice(arrayIndex, 1, poll)
+  console.log(updatedDataModel)      
+
+    this.setState({
+      poll, 
+      dataModel: updatedDataModel
+  })
     this.props.onUserClick("MyPolls")
   }
 
   handlePollNew = (poll) => {
+    console.log('2: ',poll)
     const updatedDataModel = this.state.dataModel.concat(poll)
-    this.setState({dataModel: updatedDataModel})
+    this.setState({dataModel: updatedDataModel, poll})
     this.props.onUserClick("MyPolls")
   }
 

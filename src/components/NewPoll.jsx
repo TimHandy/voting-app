@@ -36,7 +36,7 @@ class NewPoll extends React.Component {
         .props
         .onUserInput(data.poll)
       //console.log(data.poll)
-    })[e.target.name]
+    })
   }
 
   handleChange = (e) => {

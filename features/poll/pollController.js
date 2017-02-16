@@ -97,6 +97,6 @@ module.exports.updatePoll = function(req, res, next) {
     PollModel.findOneAndUpdate( { "_id": ObjectId(id) },  updatedPoll, {new: true}, function(err, doc){
       (err || (doc == null))
         ? handleError(res, 'Error: unable to update') 
-        : res.status(200).json({success: true, message: 'success: poll updated'})
+        : res.status(200).json({success: true, message: 'success: poll updated', poll: doc})
     })
 }

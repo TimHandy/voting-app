@@ -10,11 +10,41 @@ class EditPoll extends React.Component {
     }
   }
 
-  submitHandleChange = () => {
-    const poll = this.props.poll
-    poll.pollName = this.state.editPollName
-    poll.pollOptions = this.state.editPollOptions.replace(/[\s,]+/g, ',').split(',')
-    this.props.onUserInput(poll)
+  // submitHandleChange = (e) => {
+  //   e.preventDefault()
+  //   const poll = this.props.poll
+  //   poll.pollName = this.state.editPollName
+  //   poll.pollOptions = this.state.editPollOptions.replace(/[\s,]+/g, ',').split(',')
+  //   this.props.onUserInput(poll)
+  // }
+
+  submitHandleChange = (e) => {
+    e.preventDefault()
+    const updatedPollOptions = this
+      .state
+      .editPollOptions
+      .replace(/[\s,]+/g, ',')
+      .split(',')
+
+    const newOptions = updatedPollOptions.map(option => {
+      return {'option': option, 'score': 0}
+    })
+
+    fetch(`/api/poll/${this.props.poll._id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "PUT",
+      body: JSON.stringify({username: 'tim', pollName: this.state.editPollName, pollOptions: newOptions})
+    }).then((blob) => {
+      return blob.json()
+    }).then((data) => {
+      this
+        .props
+        .onUserInput(data.poll)
+
+    })
   }
 
   handleChange = (e) => {
