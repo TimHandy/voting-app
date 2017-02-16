@@ -9,8 +9,6 @@ import MainJumbotron from '../MainJumbotron'
 import Dashboard from '../Dashboard'
 import Footer from '../Footer'
 
-
-
 class App extends React.Component {
   constructor(props) {
     super(props)
@@ -23,7 +21,7 @@ class App extends React.Component {
   handleMyPoll = (arg) => {
     this.setState(
         {
-          display: arg ? arg : "MyPolls"
+          display: arg 
         }
       )
   }

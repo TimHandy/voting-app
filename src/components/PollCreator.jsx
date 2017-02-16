@@ -14,7 +14,6 @@ class PollCreator extends React.Component {
     this.props.onUserInput(
       this.state.newPollName,
       this.state.newPollOptions.replace(/[\s,]+/g, ',').split(','),
-      this.props.pollID
     );
   }
 

@@ -12,21 +12,21 @@ import { Button, Navbar, Nav, NavItem, NavDropdown, MenuItem } from 'react-boots
 
 const MainNav = (props) => {
 
-  const handleClick = () => {
-    props.onUserClick("MyPolls")
+  const handleClick = (arg) => {
+    props.onUserClick(arg)
   }
 
   return (
     <Navbar collapseOnSelect fixedTop fluid>
       <Navbar.Header>
         <Navbar.Brand >
-          <a href="#">Voting App</a>
+          <a href="#" onClick={handleClick.bind(this, "ViewPolls")}>Voting App</a>
         </Navbar.Brand>
         <Navbar.Toggle />
       </Navbar.Header>
       <Navbar.Collapse>
         <Nav pullRight>
-          {props.loggedInUser ? <NavItem eventKey={1} href="#"><Button onClick={handleClick.bind(this)}>My Polls</Button></NavItem> : null}
+          {props.loggedInUser ? <NavItem eventKey={1} href="#"><Button onClick={handleClick.bind(this, "MyPolls")}>My Polls</Button></NavItem> : null}
           {props.loggedInUser ? <NavItem eventKey={2} href="#"><Button>Logout</Button></NavItem> : null}
           {!props.loggedInUser ? <NavItem eventKey={3} href="#"><Button>Sign Up</Button></NavItem> : null}
           {!props.loggedInUser ? <NavItem eventKey={4} href="#"><Button>Login</Button></NavItem> : null}

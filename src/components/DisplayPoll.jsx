@@ -6,6 +6,10 @@ import Chart from './Chart'
 
 const DisplayPoll = (props) => {
 
+  const handleClick = (arg) => {
+    props.onUserClick(arg)
+  }
+
   const pollOptions = props
     .poll
     .pollOptions
@@ -22,13 +26,14 @@ const DisplayPoll = (props) => {
 
   return (
     <div>
+      {props.showChart===true ? <Chart poll={props.poll}/> : null}
       <h2>{props.poll.pollName}</h2>
-      <Chart poll={props.poll}/>
       <h3>Poll Options</h3>
       <ListGroup>
         {pollOptions}
       </ListGroup>
-      <Button>Submit Vote</Button>
+      <Button onClick={handleClick.bind(this, "showChart")}>Submit Vote</Button>
+      <Button onClick={handleClick.bind(this, "ViewPolls")}>Return to Polls</Button>
     </div>
   );
 }

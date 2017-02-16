@@ -40,7 +40,8 @@ class Dashboard extends React.Component {
               }
             ]
           },
-      display: "ViewPolls"
+      display: "ViewPolls",
+      showChart : false
     }
   }
 
@@ -60,13 +61,16 @@ class Dashboard extends React.Component {
 
   handlePollEdit = (poll) => {
     this.setState({poll})
+    this.props.onUserClick("MyPolls")
   }
 
-  handlePollNew = (pollName, options, pollID) => {
+  handlePollNew = (pollName, options) => {
     this.setState({pollName,options})
+    this.props.onUserClick("MyPolls")
   }
 
   handleDisplayPoll = (poll) => {
+    this.props.onUserClick("")
     this.setState(
         {
           poll,
@@ -75,26 +79,32 @@ class Dashboard extends React.Component {
       )
   }
 
-  handleMyPolls = (poll) => {
-    this.props.onUserClick("temp")
-    this.setState(
-        {
-          display: "EditPoll",
-          poll : poll
-        }
-      )
+  handleMyPolls = (poll, display) => {
+    this.props.onUserClick("")
+    this.setState({display,poll})
+  }
+
+  handleSubmitScore = (arg) => {
+    if (arg === "showChart") {
+      this.setState({showChart: true})
+    } else {
+      this.props.onUserClick("")
+      this.setState({display: arg, showChart: false})
+    }
   }
 
   render() {
     return (
       <Grid >
+        {/*These components render based on feedback from the navbar*/}
         {this.props.display === 'MyPolls' ? (this.state.display = "MyPolls", <MyPolls dataModel={this.state.dataModel} loggedInUser = {this.props.loggedInUser} onUserClick = {this.handleMyPolls}/>) : null}
+        {this.props.display === 'ViewPolls' || this.state.display === 'ViewPolls' ? (this.state.display = "ViewPolls", <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/>) : null}
+
         {this.state.display === 'Register' ? <Register /> : null}
-        {this.state.display === 'ViewPolls' ? <ViewPolls dataModel={this.state.dataModel} onUserClick = {this.handleDisplayPoll}/> : null}
         {this.state.display === 'UserSettings' ? <UserSettings /> : null}
         {this.state.display === 'PollCreator' ? <PollCreator onUserInput = {this.handlePollNew} /> : null}
         {this.state.display === 'EditPoll' ? <EditPoll onUserInput = {this.handlePollEdit} poll = {this.state.poll}/> : null}
-        {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} /> : null}
+        {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} onUserClick = {this.handleSubmitScore} showChart = {this.state.showChart}/> : null}
        
       </Grid>
     )
