@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {ListGroup, ListGroupItem, Grid, Button, Radio} from 'react-bootstrap';
-import Chart from './Chart'
+import ChartDisplay from './Chart'
 
 class DisplayPoll extends React.Component {
   constructor(props) {
@@ -34,7 +34,7 @@ class DisplayPoll extends React.Component {
     return (
       <div>
         {this.state.showChart === true
-          ? <Chart poll={this.props.poll}/>
+          ? <ChartDisplay poll={this.props.poll}/>
           : null}
         <h2>{this.props.poll.pollName}</h2>
         <h3>Poll Options</h3>

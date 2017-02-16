@@ -13,6 +13,7 @@
     "body-parser": "^1.16.0",
     "bootstrap": "^3.3.7",
     "cookie-parser": "^1.4.3",
+    "d3": "^4.5.0",
     "debug": "^2.6.0",
     "dotenv": "^4.0.0",
     "ejs": "^2.5.5",
@@ -24,6 +25,7 @@
     "react-addons-update": "^15.4.2",
     "react-bootstrap": "^0.30.7",
     "react-dom": "^15.4.2",
+    "recharts": "^0.20.8",
     "serve-favicon": "^2.3.2"
   },
   "devDependencies": {

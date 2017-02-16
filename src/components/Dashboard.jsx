@@ -21,7 +21,7 @@ class Dashboard extends React.Component {
                   "pollOptions": [
                     {
                       "option": "batman",
-                      "score": 0,
+                      "score": 5,
                       "_id": "58a1ba69af38fd34724f95dd"
                     }
                   ]
@@ -35,7 +35,7 @@ class Dashboard extends React.Component {
             "pollOptions": [
               {
                 "option": "batman",
-                "score": 0,
+                "score": 5,
                 "_id": "58a1ba69af38fd34724f95dd"
               }
             ]
