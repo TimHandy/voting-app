@@ -5,7 +5,7 @@ import {Button, Grid, Col, Row} from 'react-bootstrap'
 import ViewPolls from './ViewPolls'
 import Register from './Register'
 import UserSettings from './UserSettings'
-import PollCreator from './PollCreator'
+import NewPoll from './NewPoll'
 import EditPoll from './EditPoll'
 import DisplayPoll from './DisplayPoll'
 import MyPolls from './MyPolls'
@@ -100,7 +100,7 @@ class Dashboard extends React.Component {
 
         {this.state.display === 'Register' ? <Register /> : null}
         {this.state.display === 'UserSettings' ? <UserSettings /> : null}
-        {this.state.display === 'PollCreator' ? <PollCreator onUserInput = {this.handlePollNew} /> : null}
+        {this.state.display === 'NewPoll' ? <NewPoll onUserInput = {this.handlePollNew} /> : null}
         {this.state.display === 'EditPoll' ? <EditPoll onUserInput = {this.handlePollEdit} poll = {this.state.poll}/> : null}
         {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} onUserClick = {this.handleSubmitScore} showChart = {this.state.showChart}/> : null}
        

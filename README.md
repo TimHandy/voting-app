@@ -45,7 +45,7 @@ Note that for each project, you should create a new GitHub repository and a new 
     * Dashboard
     * UserSettings - maybe the same as registerUser
     * Register
-    * PollCreator (EditPoll is the same)
+    * NewPoll (EditPoll is the same)
     * EditPoll
     * ViewPolls - selectively displays allpolls or mypolls
     * DisplayPoll - displaying a single poll
