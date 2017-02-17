@@ -102,6 +102,24 @@ class Dashboard extends React.Component {
     }
   }
 
+  handleSubmitVote = (selectedItem) => {
+    const updatedPoll = Object.assign( {}, this.state.poll)
+    const pollOption = updatedPoll.pollOptions.find(el => el.option === selectedItem)
+    pollOption.score++
+    this.setState({poll: updatedPoll})    
+
+     fetch(`/api/poll/${updatedPoll._id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "PUT",
+      body: JSON.stringify({username: updatedPoll.username, pollName: updatedPoll.pollName, pollOptions: updatedPoll.pollOptions})
+    }).then((blob) => {
+      return blob.json()
+    })
+  }
+
   render() {
     return (
       <Grid >
@@ -113,7 +131,7 @@ class Dashboard extends React.Component {
         {this.state.display === 'UserSettings' ? <UserSettings /> : null}
         {this.state.display === 'NewPoll' ? <NewPoll onUserInput = {this.handlePollNew} /> : null}
         {this.state.display === 'EditPoll' ? <EditPoll onUserInput = {this.handlePollEdit} poll = {this.state.poll}/> : null}
-        {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} onUserClick = {this.handleSubmitScore} showChart = {this.state.showChart}/> : null}
+        {this.state.display === 'DisplayPoll' ?  <DisplayPoll poll = {this.state.poll} onUserClick = {this.handleSubmitScore} showChart = {this.state.showChart} onUserSubmitVote={this.handleSubmitVote}/> : null}
        
       </Grid>
     )

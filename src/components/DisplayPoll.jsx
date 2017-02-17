@@ -8,12 +8,27 @@ class DisplayPoll extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      showChart: false
+      showChart: false,
+      selectedItem: "",
+      voted: false
     }
   }
 
-  handleClick = (arg) => {
-    this.props.onUserClick(arg)
+  handleClickSubmitVote = () => {
+    this.state.selectedItem !== "" ? (this.setState({showChart : true, voted: true}), this.props.onUserSubmitVote(this.state.selectedItem) ) : alert('Selection required!')
+      
+  }
+
+  handleClickReturnToPolls = (viewToShow) => {
+    this.props.onUserClick(viewToShow)
+  }
+
+  handleRadioChoice = (e) => {
+    const selectedItem = e.target.value
+    this.setState({selectedItem})
+  }
+
+ handleClickShowChart = () => {
     this.setState({showChart : true})
   }
 
@@ -25,7 +40,7 @@ class DisplayPoll extends React.Component {
 
         return (
           <ListGroupItem className="list-group-item" key={option._id}>
-            <Radio name='radioGroup'>
+            <Radio onClick={this.handleRadioChoice} name='radioGroup' value={option.option}>
               {option.option}
             </Radio>
           </ListGroupItem>
@@ -41,8 +56,9 @@ class DisplayPoll extends React.Component {
         <ListGroup>
           {pollOptions}
         </ListGroup>
-        <Button onClick={this.handleClick.bind(this)}>Submit Vote</Button>
-        <Button onClick={this.handleClick.bind(this, "ViewPolls")}>Return to Polls</Button>
+        <Button disabled={this.state.voted === true} onClick={this.handleClickSubmitVote.bind(this)}>Submit Vote</Button>
+        <Button onClick={this.handleClickReturnToPolls.bind(this, "ViewPolls")}>Return to Polls</Button>
+        <Button onClick={this.handleClickShowChart.bind(this)}>View Results</Button>
       </div>
     );
   }

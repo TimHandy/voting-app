@@ -1,7 +1,6 @@
 'use strict'
 
 import React from 'react';
-import * as d3 from "d3";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import {Grid} from 'react-bootstrap';
 
