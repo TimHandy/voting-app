@@ -27,12 +27,13 @@ Note that for each project, you should create a new GitHub repository and a new 
 
 ## Notable learning/features
 
-- Created the Express backend first, using the Express generator as boilerplate.
+- Created the Express REST API backend first, using the Express generator as boilerplate.
 - Kept routes short and readable by importing the functions from pollController 
 - Wrote API documentation: 'API Contracts.md'
 - Added a cors middleware section in app.js for Express to allow the front end port 8080 to talk to back end port 3000; think this will need to be removed for production?
 - Used React-Bootrap for react style components. This can be mixed with normal Bootstrap
 - Used Recharts to make D3 setup easier.
+- Not implemented multiple users and authentication. For authentication look at Passport.js or maybe OAuth for a simpler way?
 
 ## Notes for next time
 
