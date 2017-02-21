@@ -148,7 +148,7 @@
     "func-names": "warn",
     "func-style": "off",
     "id-blacklist": "off",
-    "id-length": ["warn", { "min": "error", "properties": "always", "exceptions": ["i", "j"] }],
+    "id-length": ["warn", { "min": 2, "properties": "always", "exceptions": ["i", "j"] }],
     "id-match": "off",
     "indent": ["error", 2],
     "jsx-quotes": ["error", "prefer-double"],

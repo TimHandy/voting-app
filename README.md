@@ -21,137 +21,38 @@ Note that for each project, you should create a new GitHub repository and a new 
 
 **User Story:** As an authenticated user, if I don't like the options on a poll, I can create a new option.
 
+## Completed App
 
-## NOTES:
+[Github Pages app](https://)
 
-1. Plan React front end
+## Notable learning/features
 
-  - Start with a mockup
-  - Break into a hierarchy of components
+- Created the Express backend first, using the Express generator as boilerplate.
+- Kept routes short and readable by importing the functions from pollController 
+- Wrote API documentation: 'API Contracts.md'
+- Added a cors middleware section in app.js for Express to allow the front end port 8080 to talk to back end port 3000; think this will need to be removed for production?
+- Used React-Bootrap for react style components. This can be mixed with normal Bootstrap
+- Used Recharts to make D3 setup easier.
 
-  - Create polls
-    - add items
-  - View my polls
-    - view aggregate results of my polls (Chart.js or Google Charts.)
-  - Delete my polls
-  - Vote on other polls
-  - Create new options on an existing poll
+## Notes for next time
 
-  # Step 1: Break The UI Into A Component Hierarchy
-
-  * App
-    * Nav - selectively render button depending on login status
-    * Jumbotron - only when not logged in
-    * Dashboard
-    * UserSettings - maybe the same as registerUser
-    * Register
-    * NewPoll (EditPoll is the same)
-    * EditPoll
-    * ViewPolls - selectively displays allpolls or mypolls
-    * DisplayPoll - displaying a single poll
-      * Chart
-    * Footer
-
-    # Step 2: Build A Static Version in React
+- Important!!: see the devServer section of webpack config for how to proxy requests to the backend, this makes port 8080 forward to port 3000
+- Dashboard has state, this should be moved to the Container dir.
+- Started off doing some tests in the pollController_test dir, but was taking forever to write them.
+- Not sure whether the mongoose connection should be in the routes file?
+- addPollToDatabase should not be in pollRoutes, it should go in the controller?
+- createTestData should go in a utils dir.
+- Chart was a bit slap dash, need to do some more D3 to understand this.
+- Lots of selective rendering (Dashboard.jsx, turning on and off compenents... wonder if this should have been done with React Router to show different components as 'pages' instead? It felt dirty doing this way.
+- Webpack is v1, attempted to use v2 but failed.
+- Webpack config for React-Bootstrap needs a whole load of loaders: .png, .jpg, woff, ttf, eot, svg....
+- Webpack - don't think hotmodulereplacementplugin was actually working... only half tried to get it to work.
 
 
-1. Plan Express
+## Dev
 
-  Refer to 'API Contracts.md' for API usage guide.
+See package.json for run commands.
 
-  | **URL** | **HTTP Verb** |  **Action**|
-  |------------|-------------|------------|
-  | /poll/         | GET       | index
-  | /poll/user/    | GET       | index
-  | /poll/new      | GET       | new
-  | /poll          | POST      | create
-  | /poll/:id      | GET       | show
-  | /poll/:id/edit | GET       | edit
-  | /poll/:id      | PATCH/PUT | update
-  | /poll/:id      | DELETE    | destroy
-
-
-  | **URL** | **HTTP Verb** |  **Action**|
-  |------------|-------------|------------|
-  | /user/         | GET       | index
-  | /user/new      | GET       | new
-  | /user          | POST      | create
-  | /user/:id      | GET       | show
-  | /user/:id/edit | GET       | edit
-  | /user/:id      | PATCH/PUT | updat
-  | /user/:id      | DELETE    | destroy
-
-  - Express generator
-  - What CRUD methods do we need?
-  - GET
-    - get a single entry     GET: /:username/:pollname   using ID here?
-      - on error?
-    - get multiple entries   GET: /:username
-      - on error?
-  - POST
-    - new poll      POST: /new-poll  send the payload in the request?
-      - on error?
-    - response: json: congratulations! Your poll has been posted to http://votingapp.heroku.com/Quincy/who is your fav captain
-  - PUT
-    - single updated item   PUT /update-poll/:id
-    - on error?
-  - DELETE
-    - single item delete    DELETE /delete-poll/:id
-    - on error?
-
-  featureDir
-    featureNameController.js
-    featureNameModel.js
-    featureNameRoutes.js
-
-
-    Discuss API contracts
-
-1. Build Express REST API
-
-  - CRUD
-  - Database to store polls
-    - Polls are stored for each user
-    - Schema
-    votingDb [
-      {
-      ID:
-      username: string
-      email: string
-      password?: plugin here?
-      polls: [
-        {
-        id:
-        username:
-        pollName: string
-        pollOptions: [{'batman': 5}, {'He-Man': 0}]
-        }
-      ]
-      }
-    ]
-
-    polls: [
-        {
-        id:
-        username:
-        pollName: string
-        pollOptions: [{option: string: score: number}, {'He-Man': 0}]
-        }
-      ]
-  - Mongoose
-  - Test with Advanced REST Client / Postman
-
-    1. Authentication - add after it's working for a single user?
-
-      passport.js? for node.
-
-1. Build React
-
-  - Build a static version without state
-  - Make a list of the minimal bits of info to be stored as state. Decide whether each should be state or props.
-  - Identify which components should own the state, find a common parent for the state to live on. Get the downwards flow of state working
-  - Add inverse flow of data from child components to the parents working
-
-
-
-
+  1. run mongod in a terminal to get the database listening
+  1. start backend with `npm start`
+  1. start front end with `npm run dev`

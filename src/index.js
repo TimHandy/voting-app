@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './components/container/App'
 
+// tempoarary datamodel until DB is hooked up.
 const dataModel = [
   {
     "_id": "58a1ba69af38fd34724f95db",
